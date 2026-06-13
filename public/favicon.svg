@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Gold House Shape (back) -->
+  <path 
+    d="M 8 56 L 8 28 L 32 6 L 58 30" 
+    stroke="#C39023" 
+    stroke-width="6" 
+    fill="none" 
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+  />
+  <line 
+    x1="8" y1="56" x2="58" y2="56" 
+    stroke="#C39023" 
+    stroke-width="6" 
+  />
+
+  <!-- Black House Shape (front, offset) -->
+  <path 
+    d="M 20 56 L 20 36 L 38 18 L 58 38" 
+    stroke="#111111" 
+    stroke-width="6" 
+    fill="none" 
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+  />
+  <line 
+    x1="20" y1="56" x2="50" y2="56" 
+    stroke="#111111" 
+    stroke-width="6" 
+  />
+</svg>

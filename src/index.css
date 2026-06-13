@@ -1,0 +1,286 @@
+/* ============================================
+   EcomHutt — Design System Tokens & Global Styles
+   Luxury Minimalist E-commerce
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Design Tokens ── */
+:root {
+  /* Colors — Achromatic Luxury Palette */
+  --color-primary: #000000;
+  --color-primary-hover: rgba(0, 0, 0, 0.85);
+  --color-secondary: #333333;
+  --color-tertiary: #757575;
+  --color-neutral: #f5f5f7;
+
+  --color-surface: #f9f9fb;
+  --color-surface-dim: #d9dadc;
+  --color-surface-bright: #f9f9fb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f3f5;
+  --color-surface-container: #eeeef0;
+  --color-surface-container-high: #e8e8ea;
+  --color-surface-container-highest: #e2e2e4;
+
+  --color-on-surface: #1a1c1d;
+  --color-on-surface-variant: #4c4546;
+  --color-inverse-surface: #2f3132;
+  --color-inverse-on-surface: #f0f0f2;
+  --color-outline: #7e7576;
+  --color-outline-variant: #cfc4c5;
+
+  --color-on-primary: #ffffff;
+  --color-on-secondary: #ffffff;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-success: #2d6a4f;
+  --color-success-container: #d4edda;
+  --color-warning: #e9c46a;
+  --color-warning-container: #fff3cd;
+
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --font-display-lg: 600 64px/72px var(--font-family);
+  --font-display-mobile: 600 40px/48px var(--font-family);
+  --font-headline-lg: 500 32px/40px var(--font-family);
+  --font-headline-md: 500 24px/32px var(--font-family);
+  --font-headline-sm: 500 20px/28px var(--font-family);
+  --font-body-lg: 400 18px/28px var(--font-family);
+  --font-body-md: 400 16px/24px var(--font-family);
+  --font-body-sm: 400 14px/20px var(--font-family);
+  --font-label-caps: 600 12px/16px var(--font-family);
+  --font-caption: 400 11px/16px var(--font-family);
+  --font-button: 500 14px/20px var(--font-family);
+  --font-button-lg: 500 16px/24px var(--font-family);
+
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-slightly-tight: -0.01em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.02em;
+  --letter-spacing-extra-wide: 0.1em;
+
+  /* Spacing — 8px base grid */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --space-4xl: 96px;
+
+  --margin-mobile: 20px;
+  --margin-desktop: 64px;
+  --gutter: 24px;
+  --container-max: 1440px;
+
+  /* Shapes */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.1);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  /* Z-index scale */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+}
+
+/* ── CSS Reset & Base ── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+body {
+  font: var(--font-body-md);
+  color: var(--color-on-surface);
+  background-color: var(--color-surface-container-lowest);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: var(--font-family);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input,
+select,
+textarea {
+  font-family: var(--font-family);
+  font-size: 16px;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* ── Utility Classes ── */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--margin-mobile);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 var(--margin-desktop);
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Typography utilities */
+.text-display { font: var(--font-display-mobile); letter-spacing: var(--letter-spacing-slightly-tight); }
+.text-headline-lg { font: var(--font-headline-lg); letter-spacing: var(--letter-spacing-slightly-tight); }
+.text-headline-md { font: var(--font-headline-md); }
+.text-headline-sm { font: var(--font-headline-sm); }
+.text-body-lg { font: var(--font-body-lg); }
+.text-body-md { font: var(--font-body-md); }
+.text-body-sm { font: var(--font-body-sm); }
+.text-label-caps {
+  font: var(--font-label-caps);
+  letter-spacing: var(--letter-spacing-extra-wide);
+  text-transform: uppercase;
+}
+.text-caption { font: var(--font-caption); letter-spacing: var(--letter-spacing-wide); }
+
+@media (min-width: 768px) {
+  .text-display { font: var(--font-display-lg); letter-spacing: var(--letter-spacing-tight); }
+}
+
+/* Color utilities */
+.text-secondary { color: var(--color-secondary); }
+.text-tertiary { color: var(--color-tertiary); }
+.text-error { color: var(--color-error); }
+.text-success { color: var(--color-success); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* ── Focus visible ── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Page transitions ── */
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity var(--transition-slow), transform var(--transition-slow);
+}
+
+/* ── Animations ── */
+.animate-fade-in {
+  animation: fadeIn 0.8s ease forwards;
+}
+
+.animate-slide-up {
+  opacity: 0;
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-up-delayed {
+  opacity: 0;
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+}
+
+.animate-slide-up-delayed-2 {
+  opacity: 0;
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
