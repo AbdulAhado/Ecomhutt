@@ -7,6 +7,7 @@ import {
   getOrders,
   updateOrderStatus,
   getOrderByTracking,
+  addTrackingEvent,
 } from '../controllers/orderController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
@@ -18,5 +19,6 @@ router.route('/myorders').get(protect, getMyOrders);
 router.route('/:id').get(protect, getOrderById);
 router.route('/:id/pay').put(protect, updateOrderToPaid);
 router.route('/:id/status').put(protect, adminOnly, updateOrderStatus);
+router.route('/:id/tracking').put(protect, adminOnly, addTrackingEvent);
 
 export default router;

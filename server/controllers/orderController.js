@@ -148,10 +148,53 @@ const updateOrderStatus = async (req, res) => {
 // @access  Public
 const getOrderByTracking = async (req, res) => {
   try {
-    const order = await Order.findOne({ trackingNumber: req.params.trackingNumber });
+    const query = req.params.trackingNumber;
+    let order = await Order.findOne({ trackingNumber: query });
+    if (!order && query.match(/^[0-9a-fA-F]{24}$/)) {
+      order = await Order.findById(query);
+    }
 
     if (order) {
       res.json(order);
+    } else {
+      res.status(404).json({ message: 'Order not found with that tracking number or ID' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Add tracking event
+// @route   PUT /api/orders/:id/tracking
+// @access  Private/Admin
+const addTrackingEvent = async (req, res) => {
+  try {
+    const { status, location, message, trackingNumber } = req.body;
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      if (trackingNumber) {
+        order.trackingNumber = trackingNumber;
+      }
+      if (status) {
+        order.status = status;
+        if (status === 'Delivered') {
+          order.isDelivered = true;
+          order.deliveredAt = Date.now();
+        }
+      }
+      
+      const newEvent = {
+        status: status || order.status,
+        location: location || '',
+        message: message || `Order status updated to ${status}`,
+        timestamp: Date.now()
+      };
+      
+      order.trackingHistory.push(newEvent);
+
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
     } else {
       res.status(404).json({ message: 'Order not found' });
     }
@@ -168,4 +211,5 @@ export {
   getOrders,
   updateOrderStatus,
   getOrderByTracking,
+  addTrackingEvent,
 };

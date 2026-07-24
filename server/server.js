@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
@@ -10,6 +11,7 @@ import compression from 'compression';
 import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
 
 dotenv.config();
 
@@ -24,13 +26,16 @@ app.use(helmet({
 }));
 app.use(compression()); // Compress responses
 
-// Restrict CORS
+// Restrict CORS — must specify exact origin for cookies to work cross-origin
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL || 'https://ecomhutt.com' : '*', 
-  credentials: true
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL || 'https://ecomhutt.com'
+    : 'http://localhost:3000',
+  credentials: true, // Required for cookies to be sent cross-origin
 }));
 
 app.use(express.json({ limit: '1mb' })); // Limit body size to prevent DOS
+app.use(cookieParser()); // Parse incoming cookies
 app.use(mongoSanitize()); // Prevent NoSQL Injection
 
 // Rate Limiting for API
@@ -55,6 +60,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/herobanners', heroBannerRoutes);
+app.use('/api/categories', categoryRoutes);
 
 const __dirname = path.resolve();
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));

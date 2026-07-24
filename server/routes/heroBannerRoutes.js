@@ -1,8 +1,9 @@
 import express from 'express';
-import { 
-  getHeroBanners, 
-  createHeroBanner, 
-  deleteHeroBanner 
+import {
+  getHeroBanners,
+  createHeroBanner,
+  updateHeroBanner,
+  deleteHeroBanner,
 } from '../controllers/heroBannerController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
@@ -13,6 +14,7 @@ router.route('/')
   .post(protect, adminOnly, createHeroBanner);
 
 router.route('/:id')
+  .put(protect, adminOnly, updateHeroBanner)
   .delete(protect, adminOnly, deleteHeroBanner);
 
 export default router;

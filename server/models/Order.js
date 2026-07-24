@@ -83,16 +83,26 @@ const orderSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      default: 'Processing', // Processing, Shipped, Delivered
+      default: 'Processing', // Processing, Shipped, In Transit, Delivered, Cancelled
     },
     trackingNumber: {
       type: String,
-    }
+    },
+    trackingHistory: [
+      {
+        status: { type: String, required: true },
+        location: { type: String },
+        message: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+      }
+    ]
   },
   {
     timestamps: true,
   }
 );
+
+orderSchema.index({ user: 1, createdAt: -1 });
 
 const Order = mongoose.model('Order', orderSchema);
 

@@ -1,4 +1,7 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
+import Image from 'next/image';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
 import './ProductCard.css';
@@ -22,15 +25,22 @@ export default function ProductCard({ product }) {
     }
   };
 
+  const imgSrc = product.images?.[0] || product.image;
+
   return (
     <div className="product-card">
-      <Link to={`/product/${product.id}`} className="product-card-link">
+      <Link href={`/product/${product.id}`} className="product-card-link">
         {/* Image Container */}
-        <div className="product-image-container" style={{ backgroundColor: (product.images && product.images.length > 0) || product.image ? 'transparent' : product.imageColor }}>
-          {product.images && product.images.length > 0 ? (
-            <img src={product.images[0]} alt={product.name} className="product-real-image" />
-          ) : product.image ? (
-            <img src={product.image} alt={product.name} className="product-real-image" />
+        <div className="product-image-container" style={{ backgroundColor: imgSrc ? 'transparent' : product.imageColor }}>
+          {imgSrc ? (
+            <Image
+              src={imgSrc}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="product-real-image"
+              loading="lazy"
+            />
           ) : (
             <span className="product-image-text">{product.imageText}</span>
           )}

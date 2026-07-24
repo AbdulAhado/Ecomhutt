@@ -25,6 +25,14 @@ const heroBannerSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    order: {
+      type: Number,
+      default: 0,
+    },
+    description: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

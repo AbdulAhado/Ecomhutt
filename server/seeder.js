@@ -26,7 +26,7 @@ const importData = async () => {
       {
         name: 'Admin',
         email: 'devilrao125@gmail.com',
-        password: admin123,
+        password: adminPass,
         role: 'admin',
       },
       {

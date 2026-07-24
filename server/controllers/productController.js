@@ -5,8 +5,26 @@ import Product from '../models/Product.js';
 // @access  Public
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find({});
-    res.json(products);
+    const pageSize = req.query.limit ? Number(req.query.limit) : 0;
+    const page = req.query.page ? Number(req.query.page) : 1;
+    
+    const keyword = req.query.search
+      ? { $text: { $search: req.query.search } }
+      : {};
+
+    // Backward compatibility: If no page or limit is provided, return all products as an array
+    if (!req.query.page && !req.query.limit) {
+      const products = await Product.find({ ...keyword }).lean();
+      return res.json(products);
+    }
+
+    const count = await Product.countDocuments({ ...keyword });
+    const products = await Product.find({ ...keyword })
+      .limit(pageSize)
+      .skip(pageSize * (page - 1))
+      .lean();
+
+    res.json({ products, page, pages: Math.ceil(count / pageSize), total: count });
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
@@ -17,7 +35,7 @@ const getProducts = async (req, res) => {
 // @access  Public
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).lean();
 
     if (product) {
       res.json(product);

@@ -14,13 +14,20 @@ const authUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
-      // Check if user is verified
       if (!user.isVerified) {
-        // Send a new OTP automatically on failed verified login attempt?
-        // Or just let them request a new one. We'll just reject.
         res.status(403).json({ message: 'Account not verified. Please verify your email.', notVerified: true, email: user.email });
         return;
       }
+
+      const token = generateToken(user._id);
+
+      // Set httpOnly cookie — JS cannot read this, safe from XSS
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      });
 
       res.json({
         _id: user._id,
@@ -28,7 +35,7 @@ const authUser = async (req, res) => {
         email: user.email,
         role: user.role,
         address: user.address,
-        token: generateToken(user._id),
+        cart: user.cart,
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
@@ -121,12 +128,21 @@ const verifyOTP = async (req, res) => {
     user.otpExpiry = undefined;
     await user.save();
 
+    const token = generateToken(user._id);
+
+    // Set httpOnly cookie on OTP verification (user's first login)
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id),
       message: 'Email verified successfully',
     });
   } catch (error) {
@@ -260,6 +276,35 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+// @desc    Logout user / clear cookie
+// @route   POST /api/users/logout
+// @access  Private
+const logoutUser = (req, res) => {
+  res.cookie('token', '', {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+  res.status(200).json({ message: 'Logged out successfully' });
+};
+
+// @desc    Sync user cart
+// @route   POST /api/users/cart
+// @access  Private
+const syncCart = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (user) {
+      user.cart = req.body.cart || [];
+      await user.save();
+      res.json({ message: 'Cart synced successfully', cart: user.cart });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 // @desc    Create user (admin only)
 // @route   POST /api/users/create
 // @access  Private/Admin
@@ -297,6 +342,34 @@ const createUser = async (req, res) => {
   }
 };
 
+// @desc    Get all customers (admin only)
+// @route   GET /api/users
+// @access  Private/Admin
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Delete user (admin only)
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    await User.deleteOne({ _id: user._id });
+    res.json({ message: 'User removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 // @desc    Update user profile
 // @route   PUT /api/users/profile
 // @access  Private
@@ -329,7 +402,6 @@ const updateUserProfile = async (req, res) => {
         email: updatedUser.email,
         role: updatedUser.role,
         address: updatedUser.address,
-        token: generateToken(updatedUser._id),
       });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -345,8 +417,12 @@ export {
   getUserProfile, 
   updateUserProfile, 
   createUser,
+  getAllUsers,
+  deleteUser,
   verifyOTP,
   resendOTP,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  logoutUser,
+  syncCart
 };
