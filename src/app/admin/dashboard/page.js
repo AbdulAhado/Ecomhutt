@@ -21,7 +21,7 @@ export default function DashboardPage() {
     queryKey: ['admin-products'],
     queryFn: fetchAdminProducts,
   });
-  
+
   if (user?.role !== 'admin') {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-zinc-500">
@@ -59,7 +59,7 @@ export default function DashboardPage() {
           <div key={i} className="relative overflow-hidden bg-white rounded-2xl border border-zinc-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] p-6 group hover:shadow-lg transition-all duration-300">
             {/* Ambient Background Glow */}
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br from-zinc-100 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            
+
             <div className="relative z-10 flex flex-col gap-5">
               <div className="flex items-center justify-between text-zinc-500">
                 <span className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">{stat.label}</span>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             </Link>
-            
+
             <Link href="/admin/discounts" className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 transition-colors cursor-pointer group block">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-white shadow-inner">

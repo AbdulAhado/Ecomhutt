@@ -3,6 +3,12 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+  experimental: {
+    // Limits workers to avoid OOM on limited environments like cPanel
+    cpus: 1,
+    workerThreads: false,
+    memoryBasedWorkersCount: false,
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
