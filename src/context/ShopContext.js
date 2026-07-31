@@ -40,8 +40,9 @@ export function ShopProvider({ children }) {
     if (!isLoaded) return;
     try {
       localStorage.setItem('ether_cart', JSON.stringify(cart));
-      if (user) {
-        axios.post(`${API_BASE}/users/cart`, { cart }).catch(e => console.error('Cart sync failed', e));
+      if (user && user.token) {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        axios.post(`${API_BASE}/users/cart`, { cart }, config).catch(e => console.error('Cart sync failed', e));
       }
     } catch (e) {}
   }, [cart, isLoaded, user]);
