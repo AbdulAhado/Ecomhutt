@@ -1,5 +1,5 @@
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import Navbar from '@/components/Layout/Navbar';
+import Footer from '@/components/Layout/Footer';
 import ScrollToTop from '@/components/ScrollToTop';
 
 export default function StoreLayout({ children }) {
