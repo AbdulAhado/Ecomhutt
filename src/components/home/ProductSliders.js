@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Heart, ShoppingBag, Loader2, Package, ArrowRight, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, ShoppingBag, Loader2, Clock } from 'lucide-react';
 import { fetchProducts } from '@/lib/api';
 
 /* ──────────────────────────────────────────────────────────────
@@ -82,78 +82,26 @@ function SliderCard({ product }) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   Professional "Coming Soon" Empty State — like Amazon / ASOS
+   Inline placeholder — shown INSIDE the slider area when empty
 ────────────────────────────────────────────────────────────── */
-function ComingSoonBanner() {
-  const categories = [
-    { icon: '👗', label: 'Fashion' },
-    { icon: '📱', label: 'Electronics' },
-    { icon: '👟', label: 'Footwear' },
-    { icon: '💄', label: 'Beauty' },
-    { icon: '🛋️', label: 'Home' },
-    { icon: '⌚', label: 'Accessories' },
-  ];
-
+function ComingSoonStrip() {
   return (
-    <section className="py-16 md:py-24 bg-white">
-      <div className="max-w-[900px] mx-auto px-6 text-center">
-
-        {/* Animated icon */}
-        <div className="relative inline-flex mb-8">
-          <div className="w-20 h-20 rounded-2xl bg-zinc-50 border border-zinc-100 flex items-center justify-center shadow-sm">
-            <Package size={36} className="text-zinc-300" />
-          </div>
-          <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-[#d6ff00] flex items-center justify-center shadow-sm animate-bounce">
-            <Sparkles size={13} className="text-zinc-900" />
-          </span>
+    <div className="w-full flex items-center justify-center py-14 px-6">
+      <div className="flex flex-col sm:flex-row items-center gap-5 max-w-xl w-full bg-zinc-50 border border-dashed border-zinc-200 rounded-2xl px-8 py-8 text-center sm:text-left">
+        {/* Animated clock icon */}
+        <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white border border-zinc-100 shadow-sm flex items-center justify-center">
+          <Clock size={28} className="text-zinc-300 animate-pulse" />
         </div>
-
-        {/* Heading */}
-        <h2 className="text-2xl md:text-4xl font-bold text-zinc-900 tracking-tight mb-4">
-          Products Are On Their Way
-        </h2>
-        <p className="text-zinc-500 text-base md:text-lg max-w-lg mx-auto leading-relaxed mb-10">
-          Our team is busy curating an amazing selection just for you — from fashion and electronics to beauty and home essentials. Check back soon!
-        </p>
-
-        {/* Category pills */}
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
-          {categories.map(({ icon, label }) => (
-            <span
-              key={label}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-50 border border-zinc-100 rounded-full text-sm font-medium text-zinc-600 hover:border-zinc-300 hover:text-zinc-900 transition-colors cursor-default"
-            >
-              <span>{icon}</span>
-              {label}
-            </span>
-          ))}
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex-1 h-px bg-zinc-100" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300">In the meantime</span>
-          <div className="flex-1 h-px bg-zinc-100" />
-        </div>
-
-        {/* CTA row */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link
-            href="/products"
-            className="inline-flex items-center gap-2 px-7 py-3.5 bg-zinc-900 text-white text-sm font-bold uppercase tracking-[0.1em] rounded-full hover:bg-zinc-700 transition-colors"
-          >
-            Browse All Products
-            <ArrowRight size={14} />
-          </Link>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 px-7 py-3.5 border border-zinc-200 text-zinc-700 text-sm font-bold uppercase tracking-[0.1em] rounded-full hover:border-zinc-400 transition-colors"
-          >
-            Notify Me
-          </Link>
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[0.15em] text-zinc-800 mb-1">
+            Products Coming Very Soon
+          </p>
+          <p className="text-zinc-400 text-xs leading-relaxed">
+            We&apos;re adding new items daily. Stay tuned — exciting products are on their way!
+          </p>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -178,7 +126,7 @@ function ProductSlider({ title, subtitle, products }) {
     el.scrollBy({ left: dir === 'left' ? -480 : 480, behavior: 'smooth' });
   };
 
-  if (!products || products.length === 0) return null;
+  const isEmpty = !products || products.length === 0;
 
   return (
     <section className="py-16 md:py-20 bg-white overflow-hidden">
@@ -222,17 +170,21 @@ function ProductSlider({ title, subtitle, products }) {
           </div>
         </div>
 
-        {/* Slider Track */}
-        <div
-          ref={scrollRef}
-          onScroll={checkScroll}
-          className="flex gap-4 md:gap-6 overflow-x-auto scroll-smooth pb-4"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {products.map((product, i) => (
-            <SliderCard key={product._id || product.id || i} product={product} />
-          ))}
-        </div>
+        {/* Slider Track or Coming-Soon strip */}
+        {isEmpty ? (
+          <ComingSoonStrip />
+        ) : (
+          <div
+            ref={scrollRef}
+            onScroll={checkScroll}
+            className="flex gap-4 md:gap-6 overflow-x-auto scroll-smooth pb-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {products.map((product, i) => (
+              <SliderCard key={product._id || product.id || i} product={product} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -264,13 +216,8 @@ export default function ProductSliders({ initialProducts = [] }) {
 
   const hasProducts = realProducts.length > 0;
 
-  /* No real products → professional coming-soon state, no sliders */
-  if (!hasProducts) {
-    return <ComingSoonBanner />;
-  }
-
-  const featured    = realProducts.slice(0, 10);
-  const bestSellers = [...realProducts].reverse().slice(0, 10);
+  const featured    = hasProducts ? realProducts.slice(0, 10) : [];
+  const bestSellers = hasProducts ? [...realProducts].reverse().slice(0, 10) : [];
 
   return (
     <>
@@ -278,24 +225,22 @@ export default function ProductSliders({ initialProducts = [] }) {
         <div className="h-px bg-zinc-100" />
       </div>
 
+      {/* Section always visible — shows strip when empty */}
       <ProductSlider
         title="Featured Products"
         subtitle="Curated Selection"
         products={featured}
       />
 
-      {bestSellers.length > 0 && (
-        <>
-          <div className="max-w-[1600px] mx-auto px-4 md:px-12">
-            <div className="h-px bg-zinc-100" />
-          </div>
-          <ProductSlider
-            title="Hot Selling"
-            subtitle="Most Loved Right Now"
-            products={bestSellers}
-          />
-        </>
-      )}
+      <div className="max-w-[1600px] mx-auto px-4 md:px-12">
+        <div className="h-px bg-zinc-100" />
+      </div>
+
+      <ProductSlider
+        title="Hot Selling"
+        subtitle="Most Loved Right Now"
+        products={bestSellers}
+      />
     </>
   );
 }
