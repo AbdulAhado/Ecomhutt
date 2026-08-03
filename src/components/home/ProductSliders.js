@@ -86,8 +86,8 @@ function SliderCard({ product }) {
 ────────────────────────────────────────────────────────────── */
 function ComingSoonStrip() {
   return (
-    <div className="w-full flex items-center justify-center py-14 px-6">
-      <div className="flex flex-col sm:flex-row items-center gap-5 max-w-xl w-full bg-zinc-50 border border-dashed border-zinc-200 rounded-2xl px-8 py-8 text-center sm:text-left">
+    <div className="w-full flex items-center justify-center py-6 px-6">
+      <div className="flex flex-col sm:flex-row items-center gap-4 max-w-xl w-full bg-zinc-50 border border-dashed border-zinc-200 rounded-2xl px-6 py-5 text-center sm:text-left">
         {/* Animated clock icon */}
         <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white border border-zinc-100 shadow-sm flex items-center justify-center">
           <Clock size={28} className="text-zinc-300 animate-pulse" />
@@ -129,10 +129,10 @@ function ProductSlider({ title, subtitle, products }) {
   const isEmpty = !products || products.length === 0;
 
   return (
-    <section className="py-16 md:py-20 bg-white overflow-hidden">
+    <section className="py-8 md:py-10 bg-white overflow-hidden">
       <div className="max-w-[1600px] mx-auto px-4 md:px-12">
         {/* Header */}
-        <div className="flex items-end justify-between mb-8 md:mb-12">
+        <div className="flex items-end justify-between mb-5 md:mb-7">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400 block mb-3">{subtitle}</span>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-zinc-900 leading-none">

@@ -1,25 +1,54 @@
 import Product from '../models/Product.js';
 
-// @desc    Fetch all products
+// @desc    Fetch all products (supports ?category=, ?search=, ?page=, ?limit=, ?sort=, ?minPrice=, ?maxPrice=)
 // @route   GET /api/products
 // @access  Public
 const getProducts = async (req, res) => {
   try {
-    const pageSize = req.query.limit ? Number(req.query.limit) : 0;
-    const page = req.query.page ? Number(req.query.page) : 1;
-    
-    const keyword = req.query.search
-      ? { $text: { $search: req.query.search } }
-      : {};
+    const pageSize = req.query.limit ? Number(req.query.limit) : 12;
+    const page     = req.query.page  ? Number(req.query.page)  : 1;
 
-    // Backward compatibility: If no page or limit is provided, return all products as an array
+    // Build filter object
+    const filter = {};
+
+    // Text search
+    if (req.query.search) {
+      filter.$text = { $search: req.query.search };
+    }
+
+    // Category filter — case-insensitive exact match
+    if (req.query.category) {
+      filter.category = { $regex: new RegExp(`^${req.query.category}$`, 'i') };
+    }
+
+    // Tag filter
+    if (req.query.tag) {
+      filter.tags = req.query.tag;
+    }
+
+    // Price range
+    if (req.query.minPrice || req.query.maxPrice) {
+      filter.price = {};
+      if (req.query.minPrice) filter.price.$gte = Number(req.query.minPrice);
+      if (req.query.maxPrice) filter.price.$lte = Number(req.query.maxPrice);
+    }
+
+    // Sorting
+    let sortObj = { createdAt: -1 }; // newest first by default
+    if (req.query.sort === 'price_asc')  sortObj = { price:  1 };
+    if (req.query.sort === 'price_desc') sortObj = { price: -1 };
+    if (req.query.sort === 'newest')     sortObj = { createdAt: -1 };
+    if (req.query.sort === 'oldest')     sortObj = { createdAt:  1 };
+
+    // If no pagination params → return all (backward compat)
     if (!req.query.page && !req.query.limit) {
-      const products = await Product.find({ ...keyword }).lean();
+      const products = await Product.find(filter).sort(sortObj).lean();
       return res.json(products);
     }
 
-    const count = await Product.countDocuments({ ...keyword });
-    const products = await Product.find({ ...keyword })
+    const count    = await Product.countDocuments(filter);
+    const products = await Product.find(filter)
+      .sort(sortObj)
       .limit(pageSize)
       .skip(pageSize * (page - 1))
       .lean();
