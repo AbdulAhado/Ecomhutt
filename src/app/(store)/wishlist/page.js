@@ -79,9 +79,8 @@ export default function WishlistPage() {
                     <button
                       onClick={() => handleAddToCart(product)}
                       disabled={product.inStock === false}
-                      className={`w-full py-3 text-[9px] font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 transition-colors ${
-                        isAdded ? 'bg-zinc-900 text-white' : 'bg-white/95 backdrop-blur-md text-zinc-900 hover:bg-zinc-900 hover:text-white'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      className={`w-full py-3 text-[9px] font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 transition-colors ${isAdded ? 'bg-zinc-900 text-white' : 'bg-white/95 backdrop-blur-md text-zinc-900 hover:bg-zinc-900 hover:text-white'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       <ShoppingBag size={12} />
                       {isAdded ? 'Added!' : product.inStock !== false ? 'Add to Bag' : 'Sold Out'}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, ShoppingBag, Heart, User, Menu, X, ArrowRight } from 'lucide-react';
+import { Search, ShoppingBag, Heart, User, Menu, X, ArrowRight, Shield } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useShop } from '@/context/ShopContext';
@@ -161,6 +161,12 @@ export default function Navbar() {
               <User size={18} />
               <span>My Account</span>
             </Link>
+            {(user?.role === 'admin' || user?.role === 'lister') && (
+              <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 text-sm font-bold text-amber-600 hover:text-amber-700">
+                <Shield size={18} />
+                <span>Go to {user.role === 'admin' ? 'Admin' : 'Lister'} Dashboard</span>
+              </Link>
+            )}
           </div>
         </div>
       )}

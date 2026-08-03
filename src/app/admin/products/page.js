@@ -5,9 +5,9 @@ import { useShop } from '@/context/ShopContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { Plus, Edit3, Trash2, X, ImageOff, Search, Upload, Loader2 } from 'lucide-react';
-import axios from 'axios';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const fetchAdminProducts = async () => {
   const { data } = await axios.get(`${API}/products`);
@@ -36,7 +36,7 @@ export default function ProductsPage() {
     fetchCats();
   }, [getCategories]);
 
-  const emptyForm = { name: '', price: '', category: '', images: [], description: '', inStock: true, imageColor: '#e5e7eb', imageText: 'Product' };
+  const emptyForm = { name: '', price: '', category: '', badge: '', images: [], description: '', inStock: true, imageColor: '#e5e7eb', imageText: 'Product', sizesStr: '' };
   const [form, setForm] = useState(emptyForm);
 
   const filteredProducts = products.filter((p) =>
@@ -56,11 +56,13 @@ export default function ProductsPage() {
       name: p.name,
       price: p.price,
       category: p.category,
+      badge: p.badge || '',
       images: p.images?.length ? p.images : (p.image ? [p.image] : []),
       description: p.description || '',
       inStock: p.inStock !== false,
       imageColor: p.imageColor || '#e5e7eb',
       imageText: p.imageText || p.name.split(' ')[0],
+      sizesStr: Array.isArray(p.sizes) ? p.sizes.join(', ') : '',
     });
     setIsModalOpen(true);
   };
@@ -69,7 +71,6 @@ export default function ProductsPage() {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     if (form.images.length + files.length > 3) {
-      alert('Max 3 images per product.');
       return;
     }
     const fd = new FormData();
@@ -80,8 +81,8 @@ export default function ProductsPage() {
         headers: { Authorization: `Bearer ${user?.token}` },
       });
       setForm((prev) => ({ ...prev, images: [...prev.images, ...data].slice(0, 3) }));
-    } catch {
-      alert('Upload failed.');
+    } catch (err) {
+      console.error('Upload failed:', err);
     } finally {
       setUploadingImage(false);
     }
@@ -89,7 +90,8 @@ export default function ProductsPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { ...form, price: Number(form.price), image: form.images[0] || '' };
+    const sizes = form.sizesStr ? form.sizesStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+    const payload = { ...form, price: Number(form.price), image: form.images[0] || '', sizes };
     try {
       if (editingProduct) {
         await updateProduct(String(editingProduct._id || editingProduct.id), payload);
@@ -100,18 +102,28 @@ export default function ProductsPage() {
       await queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       setIsModalOpen(false);
     } catch (err) {
-      alert('Failed to save product.');
+      console.error('Failed to save product:', err);
     }
   };
 
-  const handleDelete = async (p) => {
-    if (!window.confirm('Delete this product?')) return;
-    try {
-      await deleteProduct(String(p._id || p.id));
-      await queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-    } catch {
-      alert('Failed to delete.');
-    }
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+
+  const handleDelete = (p) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Product',
+      message: `Are you sure you want to delete "${p.name}"? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          await deleteProduct(String(p._id || p.id));
+          await queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        }
+      },
+    });
   };
 
   return (
@@ -224,7 +236,7 @@ export default function ProductsPage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="relative w-full max-w-2xl bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-y-auto max-h-[90vh] animate-in slide-in-from-bottom-4 duration-300">
+          <div className="relative w-full max-w-2xl bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-y-auto max-h-[90vh] animate-in slide-in-from-bottom-4 duration-300" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-zinc-900">
                 {editingProduct ? 'Edit Product' : 'Add New Product'}
@@ -249,7 +261,7 @@ export default function ProductsPage() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Price ($)</label>
                   <input
@@ -275,8 +287,35 @@ export default function ProductsPage() {
                     {dbCategories.map(c => (
                       <option key={c._id || c.id} value={c.slug}>{c.name}</option>
                     ))}
-                    {dbCategories.length === 0 && <option value="general">General</option>}
                   </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Badge / Tag</label>
+                  <select
+                    value={form.badge}
+                    onChange={(e) => setForm({ ...form, badge: e.target.value })}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  >
+                    <option value="">None (Standard Product)</option>
+                    <option value="featured">Featured Product</option>
+                    <option value="hot-selling">Hot Selling</option>
+                    <option value="new-arrival">New Arrival</option>
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">
+                    Available Sizes / Options (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Comma separated, e.g. XS, S, M, L, XL (leave empty if product has no sizes)"
+                    value={form.sizesStr}
+                    onChange={(e) => setForm({ ...form, sizesStr: e.target.value })}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  />
+                  <p className="text-[11px] text-zinc-400 mt-1">If left blank, no size selection box will appear on the product page.</p>
                 </div>
 
                 <div className="sm:col-span-2">
@@ -356,6 +395,16 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="Delete"
+        variant="danger"
+      />
     </div>
   );
 }

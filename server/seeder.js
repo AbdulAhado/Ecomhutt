@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import User from './models/User.js';
 import Product from './models/Product.js';
 import Order from './models/Order.js';
+import Category from './models/Category.js';
 import connectDB from './config/db.js';
 import products from './data/products.js';
 
@@ -11,11 +12,20 @@ dotenv.config();
 
 connectDB();
 
+const HERO_DEFAULTS = [
+  { name: 'Beauty', slug: 'beauty', icon: '💄', image: '/images/categories/beauty.png', description: 'Premium skincare and cosmetics for the modern lifestyle.', isActive: true, showInHero: true, order: 0 },
+  { name: 'Shoes', slug: 'shoes', icon: '👟', image: '/images/categories/shoes.png', description: 'Handcrafted leather shoes blending luxury and comfort.', isActive: true, showInHero: true, order: 1 },
+  { name: 'Fashion', slug: 'fashion', icon: '👗', image: '/images/categories/fashion.png', description: 'Natural fabrics and elegant silhouettes for every occasion.', isActive: true, showInHero: true, order: 2 },
+  { name: 'Electronics', slug: 'electronics', icon: '📱', image: '/images/categories/electronics.png', description: 'State-of-the-art gadgets for your minimalist workspace.', isActive: true, showInHero: true, order: 3 },
+  { name: 'Furniture', slug: 'furniture', icon: '🛋️', image: '/images/categories/furniture.png', description: 'Curated home interiors for elegant and tranquil living.', isActive: true, showInHero: true, order: 4 },
+];
+
 const importData = async () => {
   try {
     await Order.deleteMany();
     await Product.deleteMany();
     await User.deleteMany();
+    await Category.deleteMany();
 
     const salt = await bcrypt.genSalt(10);
     const adminPass = await bcrypt.hash('admin123', salt);
@@ -43,6 +53,7 @@ const importData = async () => {
       }
     ]);
 
+    await Category.insertMany(HERO_DEFAULTS);
     await Product.insertMany(products);
 
     console.log('\n✅ Data Imported Successfully!\n');

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Package, Heart, LogOut, Settings, MapPin, ChevronRight } from 'lucide-react';
+import { User, Package, Heart, LogOut, Settings, MapPin, ChevronRight, Shield } from 'lucide-react';
 import { useShop } from '@/context/ShopContext';
 import { cn } from '@/lib/utils';
 
@@ -59,11 +59,15 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             {(user.role === 'admin' || user.role === 'lister') && (
-              <Link href="/admin" className="px-5 py-2.5 border border-zinc-200 text-zinc-900 text-[10px] font-bold uppercase tracking-[0.15em] hover:border-zinc-900 transition-colors">
-                Admin Panel
+              <Link 
+                href="/admin" 
+                className="flex items-center gap-2 px-6 py-3 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-[0.15em] hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg rounded-xl"
+              >
+                <Shield size={14} className="text-amber-400" />
+                {user.role === 'admin' ? 'Go to Admin Dashboard' : 'Go to Lister Dashboard'}
               </Link>
             )}
-            <button onClick={handleLogout} className="flex items-center gap-2 px-5 py-2.5 bg-[#f8f8f8] border border-zinc-100 text-zinc-600 text-[10px] font-bold uppercase tracking-[0.15em] hover:text-zinc-900 hover:border-zinc-300 transition-colors">
+            <button onClick={handleLogout} className="flex items-center gap-2 px-5 py-3 bg-[#f8f8f8] border border-zinc-100 text-zinc-600 text-[10px] font-bold uppercase tracking-[0.15em] hover:text-zinc-900 hover:border-zinc-300 transition-colors rounded-xl">
               <LogOut size={13} /> Sign Out
             </button>
           </div>
@@ -128,6 +132,26 @@ export default function DashboardPage() {
                   <p className="text-xs text-zinc-400 flex items-center gap-1 mt-1"><MapPin size={11} />{user.address.street}, {user.address.city}</p>
                 )}
               </div>
+            </div>
+          )}
+
+          {(user.role === 'admin' || user.role === 'lister') && (
+            <div className="mt-8 p-6 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 text-white rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-amber-400 shrink-0">
+                  <Shield size={22} />
+                </div>
+                <div>
+                  <p className="text-base font-bold capitalize">{user.role} Privileges Active</p>
+                  <p className="text-xs text-zinc-300 mt-0.5">You have management access to products, orders, inventory, and management features.</p>
+                </div>
+              </div>
+              <Link 
+                href="/admin" 
+                className="px-6 py-3 bg-white text-zinc-900 text-[11px] font-bold uppercase tracking-[0.15em] rounded-xl hover:bg-zinc-100 transition-colors shrink-0 text-center shadow-sm"
+              >
+                Go to {user.role === 'admin' ? 'Admin' : 'Lister'} Dashboard →
+              </Link>
             </div>
           )}
         </div>

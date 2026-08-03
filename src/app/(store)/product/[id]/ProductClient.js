@@ -115,28 +115,30 @@ export default function ProductClient({ product, recommendations }) {
               {product.description || 'Premium quality product crafted with precision and care. Designed for those who demand the best.'}
             </p>
 
-            {/* Size Selector */}
-            <div className="flex flex-col gap-3">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
-                Select Size / Option
-              </span>
-              <div className="flex gap-3 flex-wrap">
-                {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={cn(
-                      'w-12 h-12 text-xs font-bold border transition-all',
-                      selectedSize === size
-                        ? 'bg-zinc-900 text-white border-zinc-900'
-                        : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-900 hover:text-zinc-900'
-                    )}
-                  >
-                    {size}
-                  </button>
-                ))}
+            {/* Size Selector — only if product has sizes defined */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="flex flex-col gap-3">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                  Select Size / Option
+                </span>
+                <div className="flex gap-3 flex-wrap">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={cn(
+                        'w-12 h-12 text-xs font-bold border transition-all',
+                        selectedSize === size
+                          ? 'bg-zinc-900 text-white border-zinc-900'
+                          : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-900 hover:text-zinc-900'
+                      )}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity + Add to Cart */}
             <div className="flex items-center gap-4">

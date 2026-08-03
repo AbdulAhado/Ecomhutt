@@ -17,7 +17,10 @@ const getCategories = async (req, res) => {
 // @access  Public
 const getHeroCategories = async (req, res) => {
   try {
-    const categories = await Category.find({ isActive: true, showInHero: true }).sort({ order: 1 }).lean();
+    let categories = await Category.find({ isActive: true, showInHero: true }).sort({ order: 1 }).lean();
+    if (!categories || categories.length === 0) {
+      categories = await Category.find({ isActive: true }).sort({ order: 1 }).limit(5).lean();
+    }
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });

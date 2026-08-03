@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useShop } from '@/context/ShopContext';
 
 export default function LoginForm() {
   const router = useRouter();
+  const { login } = useShop();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,11 +19,11 @@ export default function LoginForm() {
     setLoading(true);
     setError('');
     try {
-      // Mock auth: accept any email containing "admin"
-      if (email.includes('admin')) {
+      const res = await login(email, password);
+      if (res.success && (res.user.role === 'admin' || res.user.role === 'lister')) {
         router.push('/admin/dashboard');
       } else {
-        setError('Invalid credentials');
+        setError(res.message || 'Invalid credentials or not an admin');
       }
     } catch (err) {
       setError('Something went wrong');

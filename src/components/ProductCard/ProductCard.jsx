@@ -16,12 +16,15 @@ export default function ProductCard({ product }) {
     toggleWishlist(product.id);
   };
 
+  const [added, setAdded] = useState(false);
+
   const handleQuickAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (product.inStock) {
-      addToCart(product.id, 1, 'Standard');
-      alert(`${product.name} added to your bag.`);
+      addToCart(product.id || product._id, 1, 'Standard');
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2000);
     }
   };
 

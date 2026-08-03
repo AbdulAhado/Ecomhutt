@@ -4,19 +4,22 @@ import User from '../models/User.js';
 const protect = async (req, res, next) => {
   let token;
 
-  // 1. Prefer httpOnly cookie (secure, XSS-safe)
-  if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
-  }
-  // 2. Fallback to Bearer header (for admin mutations that still pass headers)
-  else if (
+  // 1. Prefer Bearer header
+  if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
   }
+  // 2. Fallback to httpOnly cookie (secure, XSS-safe)
+  else if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
 
   if (!token) {
+    console.log('Auth failed: No token provided in headers or cookies.');
+    console.log('Headers:', req.headers.authorization);
+    console.log('Cookies:', req.cookies);
     return res.status(401).json({ message: 'Not authorized, no token provided' });
   }
 
@@ -25,6 +28,7 @@ const protect = async (req, res, next) => {
     req.user = await User.findById(decoded.id).select('-password');
 
     if (!req.user) {
+      console.log('Auth failed: User not found for decoded ID:', decoded.id);
       return res.status(401).json({ message: 'User account no longer exists. Please log in again.' });
     }
 

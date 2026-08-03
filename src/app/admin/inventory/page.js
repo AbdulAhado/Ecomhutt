@@ -7,7 +7,7 @@ import { Search, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import axios from 'axios';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const fetchAdminProducts = async () => {
   const { data } = await axios.get(`${API}/products`);
@@ -33,7 +33,7 @@ export default function InventoryPage() {
       await updateProduct(String(p._id || p.id), { ...p, inStock: !p.inStock });
       await queryClient.invalidateQueries({ queryKey: ['admin-products'] });
     } catch (e) {
-      alert('Failed to update stock status');
+      console.error('Failed to update stock status', e);
     }
   };
 

@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const ShopContext = createContext();
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Send cookies with every request
 axios.defaults.withCredentials = true;
@@ -44,14 +44,14 @@ export function ShopProvider({ children }) {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         axios.post(`${API_BASE}/users/cart`, { cart }, config).catch(e => console.error('Cart sync failed', e));
       }
-    } catch (e) {}
+    } catch (e) { }
   }, [cart, isLoaded, user]);
 
   useEffect(() => {
     if (!isLoaded) return;
     try {
       localStorage.setItem('ether_wishlist', JSON.stringify(wishlist));
-    } catch (e) {}
+    } catch (e) { }
   }, [wishlist, isLoaded]);
 
   useEffect(() => {
@@ -62,10 +62,10 @@ export function ShopProvider({ children }) {
       } else {
         localStorage.removeItem('ether_user');
       }
-    } catch (e) {}
+    } catch (e) { }
   }, [user, isLoaded]);
 
-// Fetch orders when user changes
+  // Fetch orders when user changes
   useEffect(() => {
     const fetchOrders = async () => {
       if (user && user.token) {
@@ -83,10 +83,14 @@ export function ShopProvider({ children }) {
     fetchOrders();
   }, [user]);
 
-  const addToCart = (productId, quantity = 1, selectedSize = null) => {
+  const addToCart = (productId, quantity = 1, selectedSize = null, productData = null) => {
+    if (!user) {
+      if (typeof window !== 'undefined') window.location.href = '/login?redirect=cart';
+      return;
+    }
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex(
-        (item) => item.id === productId && item.size === selectedSize
+        (item) => (item.id === productId || item._id === productId) && item.size === selectedSize
       );
 
       if (existingIndex > -1) {
@@ -95,10 +99,9 @@ export function ShopProvider({ children }) {
         return newCart;
       }
 
-      const product = products.find((p) => p.id === productId);
-      if (!product) return prevCart;
-      
-      return [...prevCart, { ...product, quantity, size: selectedSize }];
+      if (!productData) return prevCart;
+
+      return [...prevCart, { ...productData, id: productId, _id: productId, quantity, size: selectedSize }];
     });
   };
 
@@ -125,6 +128,10 @@ export function ShopProvider({ children }) {
   const clearCart = () => setCart([]);
 
   const toggleWishlist = (productId) => {
+    if (!user) {
+      if (typeof window !== 'undefined') window.location.href = '/login?redirect=wishlist';
+      return;
+    }
     setWishlist((prevWishlist) => {
       if (prevWishlist.includes(productId)) {
         return prevWishlist.filter((id) => id !== productId);
@@ -145,8 +152,8 @@ export function ShopProvider({ children }) {
       localStorage.setItem('ether_user', JSON.stringify(data));
       return { success: true, user: data };
     } catch (error) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         message: error.response?.data?.message || 'Login failed',
         notVerified: error.response?.data?.notVerified || false,
         email: error.response?.data?.email || email
@@ -231,7 +238,22 @@ export function ShopProvider({ children }) {
     }
     setUser(null);
     localStorage.removeItem('ether_user');
+    window.location.href = '/login';
   };
+
+  // Add axios interceptor to automatically logout on 401
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          logout();
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => axios.interceptors.response.eject(interceptor);
+  }, []);
 
   const placeOrder = async (billingDetails, shippingMethod) => {
     if (!user) return null;

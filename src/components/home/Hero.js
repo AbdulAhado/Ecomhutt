@@ -14,24 +14,52 @@ const defaultCategories = [
   { id: 5, name: 'Furniture', slug: 'furniture', image: '/images/categories/furniture.png', col: 'right', title: 'Living Space' },
 ];
 
-export default function Hero({ initialBanners = [] }) {
-  const activeBanners = initialBanners.filter(b => b.isActive).sort((a, b) => (a.order || 0) - (b.order || 0));
-  
-  let initialCategories = defaultCategories;
-  let initialHoveredId = 3;
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
-  if (activeBanners.length >= 5) {
-    initialCategories = [
-      { id: activeBanners[0]._id, name: activeBanners[0].title, slug: activeBanners[0].buttonLink.replace('/category/', ''), image: activeBanners[0].image, col: 'left' },
-      { id: activeBanners[1]._id, name: activeBanners[1].title, slug: activeBanners[1].buttonLink.replace('/category/', ''), image: activeBanners[1].image, col: 'left' },
-      { id: activeBanners[2]._id, name: activeBanners[2].title, slug: activeBanners[2].buttonLink.replace('/category/', ''), image: activeBanners[2].image, col: 'center' },
-      { id: activeBanners[3]._id, name: activeBanners[3].title, slug: activeBanners[3].buttonLink.replace('/category/', ''), image: activeBanners[3].image, col: 'right' },
-      { id: activeBanners[4]._id, name: activeBanners[4].title, slug: activeBanners[4].buttonLink.replace('/category/', ''), image: activeBanners[4].image, col: 'right' },
+const getImageUrl = (img) => {
+  if (!img) return '/images/categories/fashion.png';
+  if (img.startsWith('http')) return img;
+  if (img.startsWith('/uploads')) return `${BACKEND}${img}`;
+  return img;
+};
+
+export default function Hero({ initialCategories = [], initialBanners = [] }) {
+  let categoriesList = [];
+
+  if (Array.isArray(initialCategories) && initialCategories.length > 0) {
+    categoriesList = initialCategories.slice(0, 5).map((c, idx) => ({
+      id: c._id || c.id || idx + 1,
+      name: c.name,
+      slug: c.slug || c.name.toLowerCase().replace(/\s+/g, '-'),
+      image: getImageUrl(c.image),
+      col: idx === 2 ? 'center' : (idx < 2 ? 'left' : 'right'),
+      title: c.name
+    }));
+
+    // Pad with defaults if less than 5
+    if (categoriesList.length < 5) {
+      for (let i = categoriesList.length; i < 5; i++) {
+        categoriesList.push({
+          ...defaultCategories[i],
+          col: i === 2 ? 'center' : (i < 2 ? 'left' : 'right')
+        });
+      }
+    }
+  } else if (Array.isArray(initialBanners) && initialBanners.length >= 5) {
+    const activeBanners = initialBanners.filter(b => b.isActive).sort((a, b) => (a.order || 0) - (b.order || 0));
+    categoriesList = [
+      { id: activeBanners[0]._id, name: activeBanners[0].title, slug: activeBanners[0].buttonLink.replace('/category/', ''), image: getImageUrl(activeBanners[0].image), col: 'left' },
+      { id: activeBanners[1]._id, name: activeBanners[1].title, slug: activeBanners[1].buttonLink.replace('/category/', ''), image: getImageUrl(activeBanners[1].image), col: 'left' },
+      { id: activeBanners[2]._id, name: activeBanners[2].title, slug: activeBanners[2].buttonLink.replace('/category/', ''), image: getImageUrl(activeBanners[2].image), col: 'center' },
+      { id: activeBanners[3]._id, name: activeBanners[3].title, slug: activeBanners[3].buttonLink.replace('/category/', ''), image: getImageUrl(activeBanners[3].image), col: 'right' },
+      { id: activeBanners[4]._id, name: activeBanners[4].title, slug: activeBanners[4].buttonLink.replace('/category/', ''), image: getImageUrl(activeBanners[4].image), col: 'right' },
     ];
-    initialHoveredId = activeBanners[2]._id;
+  } else {
+    categoriesList = defaultCategories;
   }
 
-  const [categories, setCategories] = useState(initialCategories);
+  const initialHoveredId = categoriesList[2]?.id || 3;
+  const [categories, setCategories] = useState(categoriesList);
   const [hoveredId, setHoveredId] = useState(initialHoveredId);
 
   // Smooth flex transition without floating conflict
@@ -39,24 +67,24 @@ export default function Hero({ initialBanners = [] }) {
 
   const getColFlex = (colName) => {
     const hoveredItem = categories.find(c => c.id === hoveredId);
-    if (!hoveredItem) return colName === 'center' ? 0.70 : 1.0; 
-    
+    if (!hoveredItem) return colName === 'center' ? 0.70 : 1.0;
+
     if (hoveredItem.col === colName) {
-      return colName === 'center' ? 0.74 : 1.4; 
+      return colName === 'center' ? 0.74 : 1.4;
     }
-    return colName === 'center' ? 0.46 : 0.55; 
+    return colName === 'center' ? 0.46 : 0.55;
   };
 
   const getItemFlex = (item) => {
     const hoveredItem = categories.find(c => c.id === hoveredId);
     if (!hoveredItem) return 1.0;
-    
+
     if (item.col === 'center') return 1.0;
 
     if (hoveredItem.col === item.col) {
-       return item.id === hoveredId ? 2.5 : 0.45; 
+      return item.id === hoveredId ? 2.5 : 0.45;
     }
-    
+
     const fallbackFlex = { left: 1.2, right: 1.2 };
     return fallbackFlex[item.col] || 1.0;
   };
@@ -77,10 +105,10 @@ export default function Hero({ initialBanners = [] }) {
         onMouseEnter={() => setHoveredId(item.id)}
         className={`relative block w-full overflow-hidden cursor-pointer group bg-zinc-50 shadow-sm hover:shadow-2xl rounded-2xl ${animationClass}`}
       >
-        <Image 
-          src={item.image} 
-          alt={item.name} 
-          fill 
+        <Image
+          src={item.image}
+          alt={item.name}
+          fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           priority={true}
           className="object-cover object-center transition-transform duration-[1.5s] ease-out group-hover:scale-[1.05]"
@@ -105,12 +133,12 @@ export default function Hero({ initialBanners = [] }) {
           {categories?.[0] && renderGridItem(categories[0], 0)}
           {categories?.[1] && renderGridItem(categories[1], 1)}
         </div>
-        
+
         {/* Center Column */}
         <div className="flex flex-col py-0 h-full" style={{ flex: getColFlex('center'), transition: flexTransitionStyle }}>
           {categories?.[2] && renderGridItem(categories[2], 2)}
         </div>
-        
+
         {/* Right Column */}
         <div className="flex flex-col gap-6 lg:gap-10 h-full py-4" style={{ flex: getColFlex('right'), transition: flexTransitionStyle }}>
           {categories?.[3] && renderGridItem(categories[3], 3)}

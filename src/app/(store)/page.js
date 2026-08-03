@@ -6,25 +6,25 @@ const ProductSliders = dynamic(() => import('@/components/home/ProductSliders'),
   loading: () => <div className="h-96 bg-zinc-50 animate-pulse" />,
 });
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-async function getHeroBanners() {
+async function getHeroCategories() {
   try {
-    const res = await fetch(`${API_BASE}/herobanners`, { 
-      next: { revalidate: 1800 } // Revalidate every 30 minutes (ISR)
+    const res = await fetch(`${API_BASE}/categories/hero`, {
+      next: { revalidate: 60 }
     });
     if (!res.ok) return [];
-    return res.json();
+    return await res.json();
   } catch (error) {
-    console.error("Failed to fetch hero banners:", error);
+    console.error("Failed to fetch hero categories:", error);
     return [];
   }
 }
 
 async function getProducts() {
   try {
-    const res = await fetch(`${API_BASE}/products`, { 
-      next: { revalidate: 60 } 
+    const res = await fetch(`${API_BASE}/products`, {
+      next: { revalidate: 60 }
     });
     if (!res.ok) return [];
     // If the API returns pagination (our updated backend), return products array
@@ -37,14 +37,14 @@ async function getProducts() {
 }
 
 export default async function HomePage() {
-  const [heroBanners, products] = await Promise.all([
-    getHeroBanners(),
+  const [heroCategories, products] = await Promise.all([
+    getHeroCategories(),
     getProducts()
   ]);
 
   return (
     <div className="min-h-screen bg-white">
-      <Hero initialBanners={heroBanners} />
+      <Hero initialCategories={heroCategories} />
       <ProductSliders initialProducts={products} />
     </div>
   );

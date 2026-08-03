@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -17,16 +17,17 @@ import {
   Package,
 } from 'lucide-react';
 import { apiClient, getImageUrl } from '@/lib/api';
+import { useShop } from '@/context/ShopContext';
 
 /* ────────────────────────────────────────────────────────────
    Static category meta (hero image, title, description)
 ────────────────────────────────────────────────────────────── */
 const CATEGORY_META = {
-  beauty:      { image: '/images/categories/beauty.png',      title: 'Flawless Beauty',  desc: 'Discover our premium range of skincare and cosmetics designed for the modern lifestyle.' },
-  shoes:       { image: '/images/categories/shoes.png',       title: 'Step in Style',    desc: 'Handcrafted leather shoes offering both luxury and unparalleled comfort for everyday wear.' },
-  fashion:     { image: '/images/categories/fashion.png',     title: 'Modern Touch',     desc: 'Natural fabrics and elegant silhouettes that highlight the feminine figure.' },
-  electronics: { image: '/images/categories/electronics.png', title: 'Sleek Tech',       desc: 'State-of-the-art gadgets blending seamlessly into your minimalist workspace.' },
-  furniture:   { image: '/images/categories/furniture.png',   title: 'Living Space',     desc: 'Curated home interiors that bring elegance and tranquility to your living environment.' },
+  beauty: { image: '/images/categories/beauty.png', title: 'Flawless Beauty', desc: 'Discover our premium range of skincare and cosmetics designed for the modern lifestyle.' },
+  shoes: { image: '/images/categories/shoes.png', title: 'Step in Style', desc: 'Handcrafted leather shoes offering both luxury and unparalleled comfort for everyday wear.' },
+  fashion: { image: '/images/categories/fashion.png', title: 'Modern Touch', desc: 'Natural fabrics and elegant silhouettes that highlight the feminine figure.' },
+  electronics: { image: '/images/categories/electronics.png', title: 'Sleek Tech', desc: 'State-of-the-art gadgets blending seamlessly into your minimalist workspace.' },
+  furniture: { image: '/images/categories/furniture.png', title: 'Living Space', desc: 'Curated home interiors that bring elegance and tranquility to your living environment.' },
 };
 
 const DEFAULT_META = { image: '/images/categories/fashion.png', title: 'Our Collection', desc: 'Browse our full range of premium products.' };
@@ -50,13 +51,16 @@ async function fetchCategoryProducts({ category, page, sort }) {
    Single product card
 ────────────────────────────────────────────────────────────── */
 function ProductCard({ product, index }) {
-  const [wishlisted, setWishlisted] = useState(false);
+  const { wishlist, toggleWishlist, addToCart } = useShop();
+  const [added, setAdded] = useState(false);
+  const prodId = product._id || product.id;
+  const isWishlisted = wishlist?.includes(prodId);
   const img = getImageUrl(product.image || (product.images && product.images[0]));
   const hasRealImage = img && (img.startsWith('http') || img.startsWith('/uploads'));
 
   return (
     <Link
-      href={`/product/${product._id}`}
+      href={`/product/${prodId}`}
       className="group w-full flex flex-col cursor-pointer animate-in fade-in zoom-in-95 duration-500"
     >
       {/* Image */}
@@ -85,20 +89,30 @@ function ProductCard({ product, index }) {
 
         {/* Wishlist */}
         <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setWishlisted(w => !w); }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWishlist(prodId); }}
           className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-zinc-400 hover:text-red-500 transition-colors z-10 shadow-sm"
           aria-label="Wishlist"
         >
-          <Heart size={14} fill={wishlisted ? 'currentColor' : 'none'} className={wishlisted ? 'text-red-500' : ''} />
+          <Heart size={14} fill={isWishlisted ? 'currentColor' : 'none'} className={isWishlisted ? 'text-red-500' : ''} />
         </button>
 
         {/* Quick Add overlay */}
         <div className="absolute bottom-0 left-0 w-full translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-10 p-3">
           <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="w-full py-2.5 bg-zinc-900 text-white text-[9px] font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-1.5 rounded-md hover:bg-zinc-700 transition-colors"
+            onClick={(e) => {
+              e.preventDefault(); e.stopPropagation();
+              if (product.inStock !== false) {
+                addToCart(prodId, 1, 'Standard', product);
+                setAdded(true);
+                setTimeout(() => setAdded(false), 2000);
+              }
+            }}
+            disabled={product.inStock === false}
+            className={`w-full py-2.5 text-[9px] font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-1.5 rounded-md transition-colors ${
+              added ? 'bg-zinc-700 text-white' : 'bg-zinc-900 text-white hover:bg-zinc-700'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <ShoppingBag size={11} /> Add to Cart
+            <ShoppingBag size={11} /> {added ? 'Added!' : (product.inStock !== false ? 'Add to Cart' : 'Sold Out')}
           </button>
         </div>
       </div>
@@ -154,19 +168,26 @@ function SkeletonCards() {
    Main Page
 ────────────────────────────────────────────────────────────── */
 export default function CategoryPage({ params }) {
-  const slug = params.slug;
+  const { slug } = React.use(params);
   const meta = CATEGORY_META[slug?.toLowerCase()] || DEFAULT_META;
   const displayName = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'Products';
 
-  const [page, setPage]       = useState(1);
-  const [sort, setSort]       = useState('newest');
+  const [mounted, setMounted] = useState(false);
+  const [page, setPage] = useState(1);
+  const [sort, setSort] = useState('newest');
   const [sortOpen, setSortOpen] = useState(false);
 
+  useEffect(() => {
+    // Tiny delay so browser paints the initial hidden state first
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+
   const SORT_OPTIONS = [
-    { value: 'newest',     label: 'Newest First' },
-    { value: 'price_asc',  label: 'Price: Low → High' },
+    { value: 'newest', label: 'Newest First' },
+    { value: 'price_asc', label: 'Price: Low → High' },
     { value: 'price_desc', label: 'Price: High → Low' },
-    { value: 'oldest',     label: 'Oldest First' },
+    { value: 'oldest', label: 'Oldest First' },
   ];
 
   const { data, isLoading, isError } = useQuery({
@@ -176,15 +197,15 @@ export default function CategoryPage({ params }) {
     staleTime: 30_000,
   });
 
-  const products   = data?.products || [];
-  const totalPages = data?.pages    || 1;
-  const total      = data?.total    || 0;
+  const products = data?.products || [];
+  const totalPages = data?.pages || 1;
+  const total = data?.total || 0;
 
   // Filter: only products with real images (hide seeded placeholder entries)
   const realProducts = products.filter(
     p => (p.image || (p.images && p.images[0])) &&
-         (getImageUrl(p.image || (p.images && p.images[0]))).startsWith('http') ||
-         (getImageUrl(p.image || (p.images && p.images[0]))).startsWith('/uploads')
+      (getImageUrl(p.image || (p.images && p.images[0]))).startsWith('http') ||
+      (getImageUrl(p.image || (p.images && p.images[0]))).startsWith('/uploads')
   );
 
   const hasProducts = !isLoading && realProducts.length > 0;
@@ -195,17 +216,29 @@ export default function CategoryPage({ params }) {
       {/* ── Hero ─────────────────────────────────────────── */}
       <div className="relative w-full min-h-[calc(100vh-90px)] flex flex-col lg:flex-row items-center justify-between px-6 md:px-12 lg:px-20 pb-12 gap-12 lg:gap-24 bg-white">
 
-        {/* Back Button */}
+        {/* Back Button — slides down from top */}
         <Link
           href="/"
           className="absolute top-8 left-6 md:left-12 z-30 w-12 h-12 flex items-center justify-center rounded-full border border-zinc-200 bg-white/50 backdrop-blur-md text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-sm"
+          style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? 'translateY(0)' : 'translateY(-32px)',
+            transition: 'opacity 0.6s ease, transform 0.6s ease',
+          }}
           aria-label="Go back to home"
         >
           <ArrowLeft size={20} />
         </Link>
 
-        {/* Left Image */}
-        <div className="w-full lg:w-[45%] h-[60vh] lg:h-[85vh] relative mt-20 lg:mt-0 animate-in fade-in slide-in-from-left-8 duration-700">
+        {/* Left Image — slides in from left */}
+        <div
+          className="w-full lg:w-[45%] h-[60vh] lg:h-[85vh] relative mt-20 lg:mt-0"
+          style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? 'translateX(0)' : 'translateX(-80px)',
+            transition: 'opacity 0.8s cubic-bezier(0.25,1,0.5,1), transform 0.8s cubic-bezier(0.25,1,0.5,1)',
+          }}
+        >
           <Image
             src={meta.image}
             alt={meta.title}
@@ -216,8 +249,15 @@ export default function CategoryPage({ params }) {
           />
         </div>
 
-        {/* Right Content */}
-        <div className="w-full lg:w-[55%] flex flex-col pt-8 lg:pt-0 animate-in fade-in slide-in-from-right-8 duration-700 delay-150">
+        {/* Right Content — slides in from right */}
+        <div
+          className="w-full lg:w-[55%] flex flex-col pt-8 lg:pt-0"
+          style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? 'translateX(0)' : 'translateX(80px)',
+            transition: 'opacity 0.8s cubic-bezier(0.25,1,0.5,1) 0.15s, transform 0.8s cubic-bezier(0.25,1,0.5,1) 0.15s',
+          }}
+        >
 
           {/* Sort bar */}
           <div className="flex items-center justify-between w-full max-w-xl mb-16 border-b border-zinc-100 pb-6">
@@ -241,9 +281,8 @@ export default function CategoryPage({ params }) {
                     <button
                       key={opt.value}
                       onClick={() => { setSort(opt.value); setPage(1); setSortOpen(false); }}
-                      className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors ${
-                        sort === opt.value ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-50'
-                      }`}
+                      className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors ${sort === opt.value ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-50'
+                        }`}
                     >
                       {opt.label}
                     </button>
@@ -347,11 +386,10 @@ export default function CategoryPage({ params }) {
                       <button
                         key={item}
                         onClick={() => setPage(item)}
-                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${
-                          page === item
+                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${page === item
                             ? 'bg-zinc-900 text-white shadow-md'
                             : 'hover:bg-zinc-100 hover:text-zinc-900'
-                        }`}
+                          }`}
                       >
                         {item}
                       </button>

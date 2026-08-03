@@ -7,18 +7,22 @@ import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, Heart, ShoppingBag, Loader2, Clock } from 'lucide-react';
 import { fetchProducts } from '@/lib/api';
 
+import { useShop } from '@/context/ShopContext';
+
 /* ──────────────────────────────────────────────────────────────
    Single Product Card  (only rendered with real API products)
 ────────────────────────────────────────────────────────────── */
 function SliderCard({ product }) {
-  const [wishlisted, setWishlisted] = useState(false);
+  const { wishlist, toggleWishlist, addToCart } = useShop();
   const [added, setAdded] = useState(false);
 
+  const prodId = product._id || product.id;
+  const isWishlisted = wishlist?.includes(prodId);
   const displayImage = product.image || (product.images && product.images[0]);
 
   return (
     <Link
-      href={`/product/${product._id || product.id}`}
+      href={`/product/${prodId}`}
       className="group flex-shrink-0 w-[200px] sm:w-[230px] flex flex-col cursor-pointer"
     >
       {/* Image */}
@@ -42,11 +46,11 @@ function SliderCard({ product }) {
 
         {/* Wishlist */}
         <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setWishlisted(w => !w); }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWishlist(prodId); }}
           className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-zinc-400 hover:text-red-500 transition-colors z-10 shadow-sm"
           aria-label="Add to wishlist"
         >
-          <Heart size={14} strokeWidth={2} fill={wishlisted ? 'currentColor' : 'none'} className={wishlisted ? 'text-red-500' : ''} />
+          <Heart size={14} strokeWidth={2} fill={isWishlisted ? 'currentColor' : 'none'} className={isWishlisted ? 'text-red-500' : ''} />
         </button>
 
         {/* Quick Add — slides up on hover */}
@@ -54,15 +58,19 @@ function SliderCard({ product }) {
           <button
             onClick={(e) => {
               e.preventDefault(); e.stopPropagation();
-              setAdded(true);
-              setTimeout(() => setAdded(false), 2000);
+              if (product.inStock !== false) {
+                addToCart(prodId, 1, 'Standard', product);
+                setAdded(true);
+                setTimeout(() => setAdded(false), 2000);
+              }
             }}
+            disabled={product.inStock === false}
             className={`w-full py-2.5 text-[9px] font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-1.5 rounded-lg transition-colors ${
               added ? 'bg-zinc-900 text-white' : 'bg-white/95 backdrop-blur-md text-zinc-900 hover:bg-zinc-900 hover:text-white'
-            }`}
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             <ShoppingBag size={11} />
-            {added ? 'Added!' : 'Quick Add'}
+            {added ? 'Added!' : (product.inStock !== false ? 'Quick Add' : 'Sold Out')}
           </button>
         </div>
       </div>
@@ -214,10 +222,9 @@ export default function ProductSliders({ initialProducts = [] }) {
     (p) => p.image && (p.image.startsWith('http') || p.image.startsWith('/uploads'))
   );
 
-  const hasProducts = realProducts.length > 0;
-
-  const featured    = hasProducts ? realProducts.slice(0, 10) : [];
-  const bestSellers = hasProducts ? [...realProducts].reverse().slice(0, 10) : [];
+  const featured    = realProducts.filter(p => p.badge === 'featured');
+  const bestSellers = realProducts.filter(p => p.badge === 'hot-selling');
+  const newArrivals = realProducts.filter(p => p.badge === 'new-arrival');
 
   return (
     <>
@@ -225,7 +232,6 @@ export default function ProductSliders({ initialProducts = [] }) {
         <div className="h-px bg-zinc-100" />
       </div>
 
-      {/* Section always visible — shows strip when empty */}
       <ProductSlider
         title="Featured Products"
         subtitle="Curated Selection"
@@ -240,6 +246,16 @@ export default function ProductSliders({ initialProducts = [] }) {
         title="Hot Selling"
         subtitle="Most Loved Right Now"
         products={bestSellers}
+      />
+
+      <div className="max-w-[1600px] mx-auto px-4 md:px-12">
+        <div className="h-px bg-zinc-100" />
+      </div>
+
+      <ProductSlider
+        title="New Arrivals"
+        subtitle="Just Dropped"
+        products={newArrivals}
       />
     </>
   );

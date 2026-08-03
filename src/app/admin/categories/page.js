@@ -4,18 +4,18 @@ import { useState, useEffect, useRef } from 'react';
 import { useShop } from '@/context/ShopContext';
 import Image from 'next/image';
 import { Plus, Edit3, Trash2, X, Search, Upload, ImageIcon, CheckCircle2, AlertCircle, Loader2, LayoutGrid } from 'lucide-react';
-import axios from 'axios';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:5000';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 // 5 hero section default categories — match exactly with public/images/categories/
 const HERO_DEFAULTS = [
-  { name: 'Beauty',      slug: 'beauty',      icon: '💄', image: '/images/categories/beauty.png',      description: 'Premium skincare and cosmetics for the modern lifestyle.' },
-  { name: 'Shoes',       slug: 'shoes',       icon: '👟', image: '/images/categories/shoes.png',       description: 'Handcrafted leather shoes blending luxury and comfort.' },
-  { name: 'Fashion',     slug: 'fashion',     icon: '👗', image: '/images/categories/fashion.png',     description: 'Natural fabrics and elegant silhouettes for every occasion.' },
+  { name: 'Beauty', slug: 'beauty', icon: '💄', image: '/images/categories/beauty.png', description: 'Premium skincare and cosmetics for the modern lifestyle.' },
+  { name: 'Shoes', slug: 'shoes', icon: '👟', image: '/images/categories/shoes.png', description: 'Handcrafted leather shoes blending luxury and comfort.' },
+  { name: 'Fashion', slug: 'fashion', icon: '👗', image: '/images/categories/fashion.png', description: 'Natural fabrics and elegant silhouettes for every occasion.' },
   { name: 'Electronics', slug: 'electronics', icon: '📱', image: '/images/categories/electronics.png', description: 'State-of-the-art gadgets for your minimalist workspace.' },
-  { name: 'Furniture',   slug: 'furniture',   icon: '🛋️', image: '/images/categories/furniture.png',   description: 'Curated home interiors for elegant and tranquil living.' },
+  { name: 'Furniture', slug: 'furniture', icon: '🛋️', image: '/images/categories/furniture.png', description: 'Curated home interiors for elegant and tranquil living.' },
 ];
 
 function Toggle({ checked, onChange, label }) {
@@ -61,26 +61,37 @@ export default function CategoriesPage() {
     }
   };
 
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', variant: 'danger', confirmText: 'Confirm', onConfirm: () => {} });
+
   // ── Seed 5 default hero categories ──────────────────────────
-  const seedDefaults = async () => {
-    if (!window.confirm('This will add the 5 hero section categories (Beauty, Shoes, Fashion, Electronics, Furniture) if they don\'t already exist. Continue?')) return;
-    setSeeding(true);
-    setSeedMsg('');
-    const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-    let added = 0;
-    for (const cat of HERO_DEFAULTS) {
-      const exists = categories.find(c => c.slug === cat.slug);
-      if (!exists) {
-        try {
-          await axios.post(`${API}/categories`, { ...cat, isActive: true, showInHero: true, order: HERO_DEFAULTS.indexOf(cat) }, config);
-          added++;
-        } catch { /* already exists */ }
+  const seedDefaults = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Seed Default Hero Categories',
+      message: 'This will add the 5 default hero section categories (Beauty, Shoes, Fashion, Electronics, Furniture) if they do not already exist.',
+      confirmText: 'Seed Categories',
+      variant: 'info',
+      onConfirm: async () => {
+        setSeeding(true);
+        setSeedMsg('');
+        const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+        let added = 0;
+        for (const cat of HERO_DEFAULTS) {
+          const exists = categories.find(c => c.slug === cat.slug);
+          if (!exists) {
+            try {
+              await axios.post(`${API}/categories`, { ...cat, isActive: true, showInHero: true, order: HERO_DEFAULTS.indexOf(cat) }, config);
+              added++;
+            } catch { /* already exists */ }
+          }
+        }
+        await fetchCategories();
+        setSeeding(false);
+        setSeedMsg(added === 0 ? 'All default categories already exist.' : `${added} default categor${added > 1 ? 'ies' : 'y'} added!`);
+        setTimeout(() => setSeedMsg(''), 4000);
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
       }
-    }
-    await fetchCategories();
-    setSeeding(false);
-    setSeedMsg(added === 0 ? 'All default categories already exist.' : `${added} default categor${added > 1 ? 'ies' : 'y'} added!`);
-    setTimeout(() => setSeedMsg(''), 4000);
+    });
   };
 
   const filteredCategories = categories.filter(c =>
@@ -124,7 +135,7 @@ export default function CategoriesPage() {
       setForm(f => ({ ...f, image: url }));
       setImagePreview(url);
     } catch (err) {
-      alert('Image upload failed. Check Cloudinary config.');
+      console.error(err);
       setImagePreview('');
     } finally {
       setUploading(false);
@@ -144,17 +155,28 @@ export default function CategoriesPage() {
       fetchCategories();
       setIsModalOpen(false);
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to save category');
+      console.error(error);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this category?')) return;
-    const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-    try {
-      await axios.delete(`${API}/categories/${id}`, config);
-      fetchCategories();
-    } catch { alert('Failed to delete category'); }
+  const handleDelete = (id) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Category',
+      message: 'Are you sure you want to delete this category? Products in this category will remain unchanged.',
+      confirmText: 'Delete Category',
+      variant: 'danger',
+      onConfirm: async () => {
+        const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+        try {
+          await axios.delete(`${API}/categories/${id}`, config);
+          fetchCategories();
+        } catch { }
+        finally {
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        }
+      }
+    });
   };
 
   return (
@@ -280,7 +302,8 @@ export default function CategoriesPage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="relative w-full max-w-lg bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-zinc-900">{editingCategory ? 'Edit Category' : 'Add Category'}</h3>
               <button onClick={() => setIsModalOpen(false)} className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-colors"><X size={20} /></button>
@@ -390,6 +413,16 @@ export default function CategoriesPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        variant={confirmModal.variant}
+      />
     </div>
   );
 }

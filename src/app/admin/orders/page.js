@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { Search, Filter, Truck, X } from 'lucide-react';
 import axios from 'axios';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function OrdersPage() {
   const { user } = useShop();
@@ -47,7 +47,7 @@ export default function OrdersPage() {
       );
       setOrders(orders.map(o => o._id === orderId ? { ...o, status } : o));
     } catch (error) {
-      alert('Failed to update status');
+      console.error('Failed to update status', error);
     }
   };
 
@@ -74,7 +74,7 @@ export default function OrdersPage() {
       setOrders(orders.map(o => o._id === data._id ? data : o));
       setIsTrackingModalOpen(false);
     } catch (err) {
-      alert('Failed to update tracking');
+      console.error('Failed to update tracking', err);
     } finally {
       setUpdatingTracking(false);
     }

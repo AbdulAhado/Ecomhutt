@@ -50,14 +50,13 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
       label: 'Commerce',
       items: [
         { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
-        { name: 'Customers', href: '/admin/customers', icon: Users },
+        { name: 'Users', href: '/admin/customers', icon: Users },
         { name: 'Discounts', href: '/admin/discounts', icon: TicketPercent },
       ]
     },
     {
       label: 'Storefront',
       items: [
-        { name: 'Hero Section', href: '/admin/hero', icon: ImageIcon },
         { name: 'Banners', href: '/admin/banners', icon: Flag },
       ]
     }
@@ -67,7 +66,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 z-[100] lg:hidden backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
@@ -86,7 +85,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
             </div>
             <span className="font-semibold text-[15px] tracking-tight">EcomHutt</span>
           </Link>
-          <button 
+          <button
             className="lg:hidden text-zinc-400 hover:text-white transition-colors"
             onClick={() => setIsOpen(false)}
           >
@@ -111,8 +110,8 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
                       onClick={() => setIsOpen(false)}
                       className={cn(
                         'group flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200',
-                        isActive 
-                          ? 'bg-[#18181b] text-white shadow-sm ring-1 ring-white/5' 
+                        isActive
+                          ? 'bg-[#18181b] text-white shadow-sm ring-1 ring-white/5'
                           : 'text-zinc-400 hover:bg-[#18181b] hover:text-zinc-200'
                       )}
                     >
@@ -139,7 +138,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
                 className={cn(
                   'group flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200',
                   pathname === '/admin/settings'
-                    ? 'bg-[#18181b] text-white shadow-sm ring-1 ring-white/5' 
+                    ? 'bg-[#18181b] text-white shadow-sm ring-1 ring-white/5'
                     : 'text-zinc-400 hover:bg-[#18181b] hover:text-zinc-200'
                 )}
               >
@@ -165,7 +164,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
                 <p className="text-[10px] text-zinc-500 capitalize">{user?.role}</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={handleLogout}
               className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
               title="Logout"

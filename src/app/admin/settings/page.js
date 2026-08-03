@@ -5,7 +5,7 @@ import { useShop } from '@/context/ShopContext';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function SettingsPage() {
   const { user } = useShop();

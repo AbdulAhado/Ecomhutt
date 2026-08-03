@@ -33,16 +33,35 @@ const storage = multer.diskStorage({
   },
 });
 
-function checkFileType(file, cb) {
-  const filetypes = /jpg|jpeg|png|webp|gif/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
+// function checkFileType(file, cb) {
+//   const filetypes = /jpg|jpeg|png|webp|gif/i;
+//   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+//   const mimetype = filetypes.test(file.mimetype);
 
-  if (extname && mimetype) {
+//   if (extname && mimetype) {
+//     return cb(null, true);
+//   } else {
+//     cb(new Error(`Images only! (jpg, jpeg, png, webp, gif) - Received: ext=${path.extname(file.originalname)}, mimetype=${file.mimetype}`));
+//   }
+// }
+function checkFileType(file, cb) {
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/avif",
+  ];
+
+  if (allowedMimeTypes.includes(file.mimetype)) {
     return cb(null, true);
-  } else {
-    cb(new Error('Images only! (jpg, jpeg, png, webp, gif)'));
   }
+
+  cb(
+    new Error(
+      `Only image files are allowed. Received: ${file.mimetype}`
+    )
+  );
 }
 
 const upload = multer({
@@ -61,10 +80,12 @@ router.post('/', upload.array('images', 3), async (req, res) => {
   
   try {
     const uploadPromises = req.files.map(file => {
-      return cloudinary.uploader.upload(file.path, {
+      const absolutePath = path.resolve(file.path);
+      return cloudinary.uploader.upload(absolutePath, {
         folder: 'ecomhutt',
         fetch_format: 'auto',
-        quality: 'auto'
+        quality: 'auto',
+        timeout: 120000 // 120 seconds timeout
       });
     });
 
