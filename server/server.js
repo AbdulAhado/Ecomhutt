@@ -20,6 +20,10 @@ connectDB();
 
 const app = express();
 
+// Trust the first proxy (required for Render, Railway, Heroku, etc.)
+// This allows express-rate-limit to correctly read the real client IP
+app.set('trust proxy', 1);
+
 // Security Middleware
 app.use(helmet({
   crossOriginResourcePolicy: false, // Allow images to load from other domains if needed
