@@ -31,10 +31,24 @@ app.use(helmet({
 app.use(compression()); // Compress responses
 
 // Restrict CORS — must specify exact origin for cookies to work cross-origin
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [
+      'https://ecomhutt.com',
+      'https://www.ecomhutt.com',
+      process.env.FRONTEND_URL,         // custom domain from Render env vars
+    ].filter(Boolean)
+  : ['http://localhost:3000'];
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.FRONTEND_URL || 'https://ecomhutt.com'
-    : 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: origin ${origin} not allowed`));
+    }
+  },
   credentials: true, // Required for cookies to be sent cross-origin
 }));
 
