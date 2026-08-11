@@ -22,10 +22,12 @@ const authUser = async (req, res) => {
             const token = generateToken(user._id);
 
             // Set httpOnly cookie — JS cannot read this, safe from XSS
+            // In production (cross-origin), sameSite must be 'none' with secure:true
+            // In dev (same-origin localhost), 'lax' is fine
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-                sameSite: 'strict',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
                 maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             });
 
@@ -135,7 +137,7 @@ const verifyOTP = async (req, res) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 

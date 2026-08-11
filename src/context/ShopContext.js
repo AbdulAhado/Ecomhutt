@@ -242,11 +242,16 @@ export function ShopProvider({ children }) {
   };
 
   // Add axios interceptor to automatically logout on 401
+  // IMPORTANT: Skip logout for public auth endpoints (login, register, verify-otp, etc.)
+  // Otherwise a failed login 401 would call logout() which navigates away and clears the error message.
   useEffect(() => {
+    const PUBLIC_ENDPOINTS = ['/users/login', '/users', '/users/verify-otp', '/users/resend-otp', '/users/forgot-password', '/users/reset-password'];
     const interceptor = axios.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
+        const requestUrl = error.config?.url || '';
+        const isPublicEndpoint = PUBLIC_ENDPOINTS.some(ep => requestUrl.endsWith(ep));
+        if (error.response?.status === 401 && !isPublicEndpoint) {
           logout();
         }
         return Promise.reject(error);
