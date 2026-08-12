@@ -87,48 +87,73 @@ export default function Navbar() {
 
           {/* Action Icons */}
           <div className="flex items-center gap-1 sm:gap-3 ml-auto">
-            <button
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="text-zinc-600 hover:text-zinc-900 p-2.5 transition-colors"
-              aria-label="Search"
-            >
-              <Search size={19} strokeWidth={2} />
-            </button>
+            {/* Search */}
+            <div className="relative group">
+              <button
+                onClick={() => setSearchOpen(!searchOpen)}
+                className="text-zinc-600 hover:text-zinc-900 p-2.5 transition-colors"
+                aria-label="Search"
+              >
+                <Search size={19} strokeWidth={2} />
+              </button>
+              <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-900 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0 shadow-lg">
+                Search
+              </span>
+            </div>
 
-            <Link
-              href="/wishlist"
-              className="relative text-zinc-600 hover:text-zinc-900 p-2.5 transition-colors hidden sm:flex"
-              aria-label="Wishlist"
-            >
-              <Heart size={19} strokeWidth={2} />
-              {wishlistCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-zinc-900 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
+            {/* Wishlist */}
+            <div className="relative group hidden sm:block">
+              <Link
+                href="/wishlist"
+                className="relative text-zinc-600 hover:text-zinc-900 p-2.5 transition-colors flex"
+                aria-label="Wishlist"
+              >
+                <Heart size={19} strokeWidth={2} />
+                {wishlistCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-zinc-900 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+              <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-900 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0 shadow-lg">
+                Favourites
+              </span>
+            </div>
 
-            <Link
-              href={user ? '/dashboard' : '/login'}
-              className="text-zinc-600 hover:text-zinc-900 p-2.5 transition-colors"
-              aria-label="Account"
-            >
-              <User size={19} strokeWidth={2} />
-            </Link>
+            {/* Account */}
+            <div className="relative group">
+              <Link
+                href={user ? '/dashboard' : '/login'}
+                className="text-zinc-600 hover:text-zinc-900 p-2.5 transition-colors"
+                aria-label="Dashboard"
+              >
+                <User size={19} strokeWidth={2} />
+              </Link>
+              <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-900 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0 shadow-lg">
+                {user ? 'Dashboard' : 'Login'}
+              </span>
+            </div>
 
-            <Link
-              href="/cart"
-              className="relative text-zinc-600 hover:text-zinc-900 p-2.5 transition-colors"
-              aria-label="Cart"
-            >
-              <ShoppingBag size={19} strokeWidth={2} />
-              {cartCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-zinc-900 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
+            {/* Cart */}
+            <div className="relative group">
+              <Link
+                href="/cart"
+                className="relative text-zinc-600 hover:text-zinc-900 p-2.5 transition-colors flex"
+                aria-label="Cart"
+              >
+                <ShoppingBag size={19} strokeWidth={2} />
+                {cartCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-zinc-900 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+              <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-900 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0 shadow-lg">
+                Cart
+              </span>
+            </div>
           </div>
+
         </div>
       </header>
 

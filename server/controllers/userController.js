@@ -297,15 +297,35 @@ const logoutUser = (req, res) => {
 const syncCart = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
-        if (user) {
-            user.cart = req.body.cart || [];
-            await user.save();
-            res.json({ message: 'Cart synced successfully', cart: user.cart });
-        } else {
-            res.status(404).json({ message: 'User not found' });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
         }
+
+        const incomingCart = req.body.cart || [];
+
+        // Map frontend cart items to the User schema shape.
+        // Frontend items may use `id` or `_id`; schema needs `product` (ObjectId).
+        const mappedCart = incomingCart
+            .map(item => {
+                const productId = item.product || item._id || item.id;
+                if (!productId) return null; // skip items with no product id
+                return {
+                    product: productId,
+                    name: item.name || '',
+                    image: item.image || (Array.isArray(item.images) ? item.images[0] : '') || '',
+                    price: item.price || 0,
+                    quantity: item.quantity || 1,
+                    size: item.size || undefined,
+                };
+            })
+            .filter(Boolean); // remove nulls
+
+        user.cart = mappedCart;
+        await user.save();
+        res.json({ message: 'Cart synced successfully', cart: user.cart });
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('syncCart error:', error.message);
+        res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useShop } from '@/context/ShopContext';
 import Image from 'next/image';
+import axios from 'axios';
 import { Plus, Edit3, Trash2, X, Search, Upload, ImageIcon, CheckCircle2, AlertCircle, Loader2, LayoutGrid } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
