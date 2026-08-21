@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, ShoppingBag } from 'lucide-react';
@@ -8,21 +9,24 @@ import './ProductCard.css';
 
 export default function ProductCard({ product }) {
   const { wishlist, toggleWishlist, addToCart } = useShop();
-  const isWishlisted = wishlist.includes(product.id);
+  const [added, setAdded] = useState(false);
+
+  const prodId = String(product.id || product._id || '');
+  const isWishlisted = wishlist?.some(id => String(id) === prodId);
 
   const handleWishlistToggle = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleWishlist(product.id);
+    if (prodId) {
+      toggleWishlist(prodId);
+    }
   };
-
-  const [added, setAdded] = useState(false);
 
   const handleQuickAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (product.inStock) {
-      addToCart(product.id || product._id, 1, 'Standard');
+      addToCart(product, 1, 'Standard');
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     }
@@ -32,7 +36,7 @@ export default function ProductCard({ product }) {
 
   return (
     <div className="product-card">
-      <Link href={`/product/${product.id}`} className="product-card-link">
+      <Link href={`/product/${prodId}`} className="product-card-link">
         {/* Image Container */}
         <div className="product-image-container" style={{ backgroundColor: imgSrc ? 'transparent' : product.imageColor }}>
           {imgSrc ? (

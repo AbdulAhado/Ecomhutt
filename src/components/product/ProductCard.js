@@ -3,44 +3,30 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Heart, ShoppingBag } from 'lucide-react';
+import { useShop } from '@/context/ShopContext';
 
 export default function ProductCard({ product }) {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { wishlist, toggleWishlist, addToCart } = useShop();
   const [added, setAdded] = useState(false);
+
+  const prodId = String(product.id || product._id || '');
+  const isWishlisted = wishlist?.some(id => String(id) === prodId);
 
   const handleWishlistToggle = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
-    try {
-      const saved = localStorage.getItem('ether_wishlist');
-      let wishlist = saved ? JSON.parse(saved) : [];
-      if (wishlist.includes(product.id)) {
-        wishlist = wishlist.filter(id => id !== product.id);
-      } else {
-        wishlist.push(product.id);
-      }
-      localStorage.setItem('ether_wishlist', JSON.stringify(wishlist));
-    } catch (err) { console.error(err); }
+    if (prodId) {
+      toggleWishlist(prodId);
+    }
   };
 
   const handleQuickAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (product.inStock !== false) {
-      try {
-        const saved = localStorage.getItem('ether_cart');
-        let cart = saved ? JSON.parse(saved) : [];
-        const index = cart.findIndex(item => item.id === product.id);
-        if (index > -1) {
-          cart[index].quantity += 1;
-        } else {
-          cart.push({ ...product, quantity: 1 });
-        }
-        localStorage.setItem('ether_cart', JSON.stringify(cart));
-        setAdded(true);
-        setTimeout(() => setAdded(false), 2000);
-      } catch (err) { console.error(err); }
+      addToCart(product, 1, 'Standard');
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2000);
     }
   };
 

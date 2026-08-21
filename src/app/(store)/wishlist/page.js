@@ -12,13 +12,16 @@ export default function WishlistPage() {
   const { data: products = [] } = useQuery({ queryKey: ['products'], queryFn: fetchProducts });
   const [addedIds, setAddedIds] = useState([]);
 
-  const wishlistProducts = products.filter((p) => wishlist.includes(p.id));
+  const wishlistProducts = products.filter((p) =>
+    wishlist?.some((wId) => String(wId) === String(p.id) || String(wId) === String(p._id))
+  );
 
   const handleAddToCart = (product) => {
+    const prodId = String(product.id || product._id);
     if (product.inStock !== false) {
-      addToCart(product.id, 1, 'Standard');
-      setAddedIds((prev) => [...prev, product.id]);
-      setTimeout(() => setAddedIds((prev) => prev.filter((id) => id !== product.id)), 2000);
+      addToCart(product, 1, 'Standard');
+      setAddedIds((prev) => [...prev, prodId]);
+      setTimeout(() => setAddedIds((prev) => prev.filter((id) => id !== prodId)), 2000);
     }
   };
 
@@ -50,14 +53,15 @@ export default function WishlistPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-14">
           {wishlistProducts.map((product) => {
+            const prodId = String(product.id || product._id);
             const displayImg = product.image || (product.images && product.images[0]);
-            const isAdded = addedIds.includes(product.id);
+            const isAdded = addedIds.includes(prodId);
             return (
-              <div key={product.id} className="group flex flex-col">
+              <div key={prodId} className="group flex flex-col">
 
                 {/* Image */}
                 <div className="relative w-full aspect-[3/4] bg-[#f2f2f2] overflow-hidden">
-                  <Link href={`/product/${product.id}`}>
+                  <Link href={`/product/${prodId}`}>
                     {displayImg ? (
                       <img src={displayImg} alt={product.name} className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105" />
                     ) : (
@@ -67,7 +71,7 @@ export default function WishlistPage() {
 
                   {/* Remove from Wishlist */}
                   <button
-                    onClick={() => toggleWishlist(product.id)}
+                    onClick={() => toggleWishlist(prodId)}
                     className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white/80 backdrop-blur-sm text-zinc-400 hover:text-red-500 transition-colors z-10"
                     aria-label="Remove from wishlist"
                   >
@@ -91,7 +95,7 @@ export default function WishlistPage() {
                 {/* Info */}
                 <div className="mt-4 px-0.5 flex flex-col gap-1.5">
                   <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">{product.category}</span>
-                  <Link href={`/product/${product.id}`}>
+                  <Link href={`/product/${prodId}`}>
                     <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-900 line-clamp-1 hover:underline underline-offset-4 decoration-1">{product.name}</h3>
                   </Link>
                   <p className="text-xs font-bold text-zinc-900">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</p>

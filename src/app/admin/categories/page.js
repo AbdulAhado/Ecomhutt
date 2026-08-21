@@ -301,104 +301,108 @@ export default function CategoriesPage() {
 
       {/* ── Modal ─────────────────────────────────────────────── */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="relative w-full max-w-lg bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="fixed inset-0 bg-zinc-900/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="relative w-full max-w-lg bg-white border border-zinc-200 rounded-3xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] flex flex-col my-auto z-10 overflow-hidden">
 
-            <div className="flex items-center justify-between mb-6">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-zinc-100 shrink-0">
               <h3 className="text-xl font-bold text-zinc-900">{editingCategory ? 'Edit Category' : 'Add Category'}</h3>
               <button onClick={() => setIsModalOpen(false)} className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-colors"><X size={20} /></button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto space-y-5 flex-1" style={{ scrollbarWidth: 'thin' }}>
 
-              {/* Name */}
-              <div>
-                <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Name</label>
-                <input
-                  type="text" value={form.name} required
-                  onChange={(e) => {
-                    const name = e.target.value;
-                    setForm({ ...form, name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') });
-                  }}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                />
-              </div>
+                {/* Name */}
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Name</label>
+                  <input
+                    type="text" value={form.name} required
+                    onChange={(e) => {
+                      const name = e.target.value;
+                      setForm({ ...form, name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') });
+                    }}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  />
+                </div>
 
-              {/* Slug */}
-              <div>
-                <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Slug <span className="text-zinc-400 normal-case font-normal">(auto-generated from name, URL-friendly)</span></label>
-                <input
-                  type="text" value={form.slug} required
-                  onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                />
-              </div>
+                {/* Slug */}
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Slug <span className="text-zinc-400 normal-case font-normal">(auto-generated from name, URL-friendly)</span></label>
+                  <input
+                    type="text" value={form.slug} required
+                    onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  />
+                </div>
 
-              {/* Category Image */}
-              <div>
-                <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Category Image</label>
-                <div
-                  onClick={() => fileRef.current?.click()}
-                  className="relative w-full h-36 border-2 border-dashed border-zinc-200 rounded-xl overflow-hidden cursor-pointer hover:border-zinc-400 transition-colors group bg-zinc-50 flex items-center justify-center"
-                >
-                  {imagePreview ? (
-                    <>
-                      <Image src={imagePreview} alt="preview" fill className="object-cover" />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white text-xs font-bold uppercase tracking-widest">Change Image</span>
+                {/* Category Image */}
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Category Image</label>
+                  <div
+                    onClick={() => fileRef.current?.click()}
+                    className="relative w-full h-36 border-2 border-dashed border-zinc-200 rounded-xl overflow-hidden cursor-pointer hover:border-zinc-400 transition-colors group bg-zinc-50 flex items-center justify-center"
+                  >
+                    {imagePreview ? (
+                      <>
+                        <Image src={imagePreview} alt="preview" fill className="object-cover" />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-xs font-bold uppercase tracking-widest">Change Image</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-zinc-400">
+                        {uploading ? <Loader2 size={24} className="animate-spin" /> : <Upload size={24} />}
+                        <span className="text-xs font-medium">{uploading ? 'Uploading...' : 'Click to upload category image'}</span>
                       </div>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 text-zinc-400">
-                      {uploading ? <Loader2 size={24} className="animate-spin" /> : <Upload size={24} />}
-                      <span className="text-xs font-medium">{uploading ? 'Uploading...' : 'Click to upload category image'}</span>
-                    </div>
+                    )}
+                  </div>
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  {imagePreview && !uploading && (
+                    <button
+                      type="button"
+                      onClick={() => { setImagePreview(''); setForm(f => ({ ...f, image: '' })); }}
+                      className="mt-1.5 text-xs text-red-500 hover:underline"
+                    >
+                      Remove image
+                    </button>
                   )}
                 </div>
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                {imagePreview && !uploading && (
-                  <button
-                    type="button"
-                    onClick={() => { setImagePreview(''); setForm(f => ({ ...f, image: '' })); }}
-                    className="mt-1.5 text-xs text-red-500 hover:underline"
-                  >
-                    Remove image
-                  </button>
-                )}
+
+                {/* Icon */}
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Icon (Emoji)</label>
+                  <input
+                    type="text" value={form.icon}
+                    onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    placeholder="e.g. 👗"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Description <span className="text-zinc-400 normal-case font-normal">(optional)</span></label>
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    rows={2}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-none"
+                    placeholder="Short description shown on the category hero page"
+                  />
+                </div>
+
+                {/* Toggles */}
+                <div className="pt-1 flex flex-col gap-3">
+                  <Toggle checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} label="Active (visible to customers)" />
+                  <Toggle checked={form.showInHero} onChange={(e) => setForm({ ...form, showInHero: e.target.checked })} label="Show in Hero Categories Navigation" />
+                </div>
               </div>
 
-              {/* Icon */}
-              <div>
-                <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Icon (Emoji)</label>
-                <input
-                  type="text" value={form.icon}
-                  onChange={(e) => setForm({ ...form, icon: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                  placeholder="e.g. 👗"
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Description <span className="text-zinc-400 normal-case font-normal">(optional)</span></label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  rows={2}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-none"
-                  placeholder="Short description shown on the category hero page"
-                />
-              </div>
-
-              {/* Toggles */}
-              <div className="pt-1 flex flex-col gap-3">
-                <Toggle checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} label="Active (visible to customers)" />
-                <Toggle checked={form.showInHero} onChange={(e) => setForm({ ...form, showInHero: e.target.checked })} label="Show in Hero Categories Navigation" />
-              </div>
-
-              {/* Buttons */}
-              <div className="flex items-center gap-3 pt-5 border-t border-zinc-100">
+              {/* Footer */}
+              <div className="flex items-center gap-3 p-6 pt-4 border-t border-zinc-100 bg-zinc-50/50 rounded-b-3xl shrink-0">
                 <button
                   type="submit"
                   disabled={uploading}

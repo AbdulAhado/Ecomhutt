@@ -234,10 +234,12 @@ export default function ProductsPage() {
 
       {/* Product Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="relative w-full max-w-2xl bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-y-auto max-h-[90vh] animate-in slide-in-from-bottom-4 duration-300" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <div className="flex items-center justify-between mb-6">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="fixed inset-0 bg-zinc-900/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="relative w-full max-w-2xl bg-white border border-zinc-200 rounded-3xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] flex flex-col my-auto z-10 overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-zinc-100 shrink-0">
               <h3 className="text-xl font-bold text-zinc-900">
                 {editingProduct ? 'Edit Product' : 'Add New Product'}
               </h3>
@@ -249,134 +251,138 @@ export default function ProductsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Product Name</label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Price ($)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Category</label>
-                  <select
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                    required
-                  >
-                    <option value="" disabled>Select a category</option>
-                    {dbCategories.map(c => (
-                      <option key={c._id || c.id} value={c.slug}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Badge / Tag</label>
-                  <select
-                    value={form.badge}
-                    onChange={(e) => setForm({ ...form, badge: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                  >
-                    <option value="">None (Standard Product)</option>
-                    <option value="featured">Featured Product</option>
-                    <option value="hot-selling">Hot Selling</option>
-                    <option value="new-arrival">New Arrival</option>
-                  </select>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">
-                    Available Sizes / Options (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Comma separated, e.g. XS, S, M, L, XL (leave empty if product has no sizes)"
-                    value={form.sizesStr}
-                    onChange={(e) => setForm({ ...form, sizesStr: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                  />
-                  <p className="text-[11px] text-zinc-400 mt-1">If left blank, no size selection box will appear on the product page.</p>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Description</label>
-                  <textarea
-                    rows={4}
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-none"
-                  />
-                </div>
-              </div>
-
-              {/* Images */}
-              <div>
-                <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-3 block">Images (Max 3)</label>
-                <div className="flex flex-wrap gap-4">
-                  {form.images.map((img, idx) => (
-                    <div key={idx} className="relative w-24 h-24 rounded-xl border border-zinc-200 overflow-hidden bg-zinc-50 group">
-                      <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setForm((p) => ({ ...p, images: p.images.filter((_, i) => i !== idx) }))}
-                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ))}
-                  {form.images.length < 3 && (
-                    <label className="w-24 h-24 rounded-xl border-2 border-dashed border-zinc-300 hover:border-zinc-400 hover:bg-zinc-50 flex flex-col items-center justify-center cursor-pointer text-zinc-500 transition-colors">
-                      {uploadingImage ? (
-                        <span className="text-[10px] font-medium">Uploading...</span>
-                      ) : (
-                        <>
-                          <Upload size={20} className="mb-1" />
-                          <span className="text-[10px] font-medium">Upload</span>
-                        </>
-                      )}
-                      <input type="file" multiple accept="image/*" className="hidden" onChange={uploadImages} disabled={uploadingImage} />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <label className="flex items-center gap-3 cursor-pointer select-none w-max">
-                  <div className="relative flex items-center">
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto space-y-5 flex-1" style={{ scrollbarWidth: 'thin' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Product Name</label>
                     <input
-                      type="checkbox"
-                      checked={form.inStock}
-                      onChange={(e) => setForm({ ...form, inStock: e.target.checked })}
-                      className="sr-only peer"
+                      type="text"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                      required
                     />
-                    <div className="w-10 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-zinc-900"></div>
                   </div>
-                  <span className="text-sm font-medium text-zinc-900">Product is in stock</span>
-                </label>
+
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Price ($)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.price}
+                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Category</label>
+                    <select
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                      required
+                    >
+                      <option value="" disabled>Select a category</option>
+                      {dbCategories.map(c => (
+                        <option key={c._id || c.id} value={c.slug}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Badge / Tag</label>
+                    <select
+                      value={form.badge}
+                      onChange={(e) => setForm({ ...form, badge: e.target.value })}
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    >
+                      <option value="">None (Standard Product)</option>
+                      <option value="featured">Featured Product</option>
+                      <option value="hot-selling">Hot Selling</option>
+                      <option value="new-arrival">New Arrival</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">
+                      Available Sizes / Options (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Comma separated, e.g. XS, S, M, L, XL (leave empty if product has no sizes)"
+                      value={form.sizesStr}
+                      onChange={(e) => setForm({ ...form, sizesStr: e.target.value })}
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    />
+                    <p className="text-[11px] text-zinc-400 mt-1">If left blank, no size selection box will appear on the product page.</p>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2 block">Description</label>
+                    <textarea
+                      rows={4}
+                      value={form.description}
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Images */}
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-3 block">Images (Max 3)</label>
+                  <div className="flex flex-wrap gap-4">
+                    {form.images.map((img, idx) => (
+                      <div key={idx} className="relative w-24 h-24 rounded-xl border border-zinc-200 overflow-hidden bg-zinc-50 group">
+                        <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setForm((p) => ({ ...p, images: p.images.filter((_, i) => i !== idx) }))}
+                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    {form.images.length < 3 && (
+                      <label className="w-24 h-24 rounded-xl border-2 border-dashed border-zinc-300 hover:border-zinc-400 hover:bg-zinc-50 flex flex-col items-center justify-center cursor-pointer text-zinc-500 transition-colors">
+                        {uploadingImage ? (
+                          <span className="text-[10px] font-medium">Uploading...</span>
+                        ) : (
+                          <>
+                            <Upload size={20} className="mb-1" />
+                            <span className="text-[10px] font-medium">Upload</span>
+                          </>
+                        )}
+                        <input type="file" multiple accept="image/*" className="hidden" onChange={uploadImages} disabled={uploadingImage} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <label className="flex items-center gap-3 cursor-pointer select-none w-max">
+                    <div className="relative flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={form.inStock}
+                        onChange={(e) => setForm({ ...form, inStock: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-zinc-900"></div>
+                    </div>
+                    <span className="text-sm font-medium text-zinc-900">Product is in stock</span>
+                  </label>
+                </div>
               </div>
 
-              <div className="flex items-center gap-3 pt-6 border-t border-zinc-100">
+              {/* Footer */}
+              <div className="flex items-center gap-3 p-6 pt-4 border-t border-zinc-100 bg-zinc-50/50 rounded-b-3xl shrink-0">
                 <button
                   type="submit"
                   className="px-6 py-2.5 bg-zinc-900 text-white rounded-xl font-medium text-sm hover:bg-zinc-800 transition-colors"

@@ -145,7 +145,9 @@ const updateProduct = async (req, res) => {
 // @access  Private/AdminOrLister
 const deleteProduct = async (req, res) => {
     try {
+        console.log('[DEBUG DELETE] Received ID:', req.params.id);
         const product = await Product.findById(req.params.id);
+        console.log('[DEBUG DELETE] Found product in DB:', product ? product.name : 'null');
 
         if (product) {
             await Product.deleteOne({ _id: product._id });
@@ -154,6 +156,7 @@ const deleteProduct = async (req, res) => {
             res.status(404).json({ message: 'Product not found' });
         }
     } catch (error) {
+        console.error('[DEBUG DELETE] Error:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 };

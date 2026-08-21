@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Heart, ShoppingBag, Loader2, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, ShoppingBag, Loader2, Clock, Package } from 'lucide-react';
 import { fetchProducts } from '@/lib/api';
 
 import { useShop } from '@/context/ShopContext';
@@ -16,8 +16,8 @@ function SliderCard({ product }) {
   const { wishlist, toggleWishlist, addToCart } = useShop();
   const [added, setAdded] = useState(false);
 
-  const prodId = product._id || product.id;
-  const isWishlisted = wishlist?.includes(prodId);
+  const prodId = String(product._id || product.id || '');
+  const isWishlisted = wishlist?.some(id => String(id) === prodId);
   const displayImage = product.image || (product.images && product.images[0]);
 
   return (

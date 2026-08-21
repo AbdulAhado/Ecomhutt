@@ -14,8 +14,6 @@ const productValidation = [
     body('name').notEmpty().withMessage('Product name is required'),
     body('price').isNumeric().withMessage('Price must be a number'),
     body('category').notEmpty().withMessage('Category is required'),
-    body('brand').notEmpty().withMessage('Brand is required'),
-    body('countInStock').isNumeric().withMessage('Count in stock must be a number'),
 ];
 
 const router = express.Router();

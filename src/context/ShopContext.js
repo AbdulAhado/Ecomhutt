@@ -83,31 +83,59 @@ export function ShopProvider({ children }) {
     fetchOrders();
   }, [user]);
 
-  const addToCart = (productId, quantity = 1, selectedSize = null, productData = null) => {
-    if (!user) {
-      if (typeof window !== 'undefined') window.location.href = '/login?redirect=cart';
-      return;
+  const addToCart = (productOrId, quantity = 1, selectedSize = null, productData = null) => {
+    let resolvedId;
+    let resolvedData = {};
+
+    if (typeof productOrId === 'object' && productOrId !== null) {
+      resolvedData = { ...productOrId };
+      resolvedId = String(productOrId.id || productOrId._id || '');
+    } else {
+      resolvedId = String(productOrId || '');
+      resolvedData = productData && typeof productData === 'object' ? { ...productData } : {};
     }
+
+    if (!resolvedId) return;
+
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex(
-        (item) => (item.id === productId || item._id === productId) && item.size === selectedSize
+        (item) =>
+          (String(item.id) === resolvedId || String(item._id) === resolvedId) &&
+          (item.size || null) === (selectedSize || null)
       );
 
       if (existingIndex > -1) {
         const newCart = [...prevCart];
-        newCart[existingIndex].quantity += quantity;
+        newCart[existingIndex] = {
+          ...newCart[existingIndex],
+          quantity: newCart[existingIndex].quantity + quantity
+        };
         return newCart;
       }
 
-      if (!productData) return prevCart;
-
-      return [...prevCart, { ...productData, id: productId, _id: productId, quantity, size: selectedSize }];
+      return [
+        ...prevCart,
+        {
+          ...resolvedData,
+          id: resolvedId,
+          _id: resolvedId,
+          quantity: quantity > 0 ? quantity : 1,
+          size: selectedSize || 'Standard'
+        }
+      ];
     });
   };
 
   const removeFromCart = (productId, selectedSize = null) => {
+    const targetId = String(productId);
     setCart((prevCart) =>
-      prevCart.filter((item) => !(item.id === productId && item.size === selectedSize))
+      prevCart.filter(
+        (item) =>
+          !(
+            (String(item.id) === targetId || String(item._id) === targetId) &&
+            (item.size || null) === (selectedSize || null)
+          )
+      )
     );
   };
 
@@ -116,9 +144,11 @@ export function ShopProvider({ children }) {
       removeFromCart(productId, selectedSize);
       return;
     }
+    const targetId = String(productId);
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.id === productId && item.size === selectedSize
+        (String(item.id) === targetId || String(item._id) === targetId) &&
+        (item.size || null) === (selectedSize || null)
           ? { ...item, quantity }
           : item
       )
@@ -128,15 +158,14 @@ export function ShopProvider({ children }) {
   const clearCart = () => setCart([]);
 
   const toggleWishlist = (productId) => {
-    if (!user) {
-      if (typeof window !== 'undefined') window.location.href = '/login?redirect=wishlist';
-      return;
-    }
+    if (!productId) return;
+    const targetId = String(productId);
     setWishlist((prevWishlist) => {
-      if (prevWishlist.includes(productId)) {
-        return prevWishlist.filter((id) => id !== productId);
+      const exists = prevWishlist.some((id) => String(id) === targetId);
+      if (exists) {
+        return prevWishlist.filter((id) => String(id) !== targetId);
       } else {
-        return [...prevWishlist, productId];
+        return [...prevWishlist, targetId];
       }
     });
   };
@@ -147,7 +176,18 @@ export function ShopProvider({ children }) {
       const { data } = await axios.post(`${API_BASE}/users/login`, { email, password }, config);
       setUser(data);
       if (data.cart && data.cart.length > 0) {
-        setCart(data.cart);
+        setCart(
+          data.cart.map((item) => {
+            const id = String(item.product || item._id || item.id || '');
+            return {
+              ...item,
+              id: id,
+              _id: id,
+              quantity: item.quantity || 1,
+              size: item.size || 'Standard'
+            };
+          })
+        );
       }
       localStorage.setItem('ether_user', JSON.stringify(data));
       return { success: true, user: data };
@@ -193,6 +233,20 @@ export function ShopProvider({ children }) {
       const config = { headers: { 'Content-Type': 'application/json' } };
       const { data } = await axios.post(`${API_BASE}/users/verify-otp`, { email, otp }, config);
       setUser(data);
+      if (data.cart && data.cart.length > 0) {
+        setCart(
+          data.cart.map((item) => {
+            const id = String(item.product || item._id || item.id || '');
+            return {
+              ...item,
+              id: id,
+              _id: id,
+              quantity: item.quantity || 1,
+              size: item.size || 'Standard'
+            };
+          })
+        );
+      }
       localStorage.setItem('ether_user', JSON.stringify(data));
       return { success: true, user: data };
     } catch (error) {
@@ -310,11 +364,11 @@ export function ShopProvider({ children }) {
   };
 
   const getCartSubtotal = () => {
-    return cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    return cart.reduce((acc, item) => acc + (Number(item.price) || 0) * (Number(item.quantity) || 1), 0);
   };
 
   const getCartCount = () => {
-    return cart.reduce((acc, item) => acc + item.quantity, 0);
+    return cart.reduce((acc, item) => acc + (Number(item.quantity) || 1), 0);
   };
 
   const createProduct = async (productData) => {

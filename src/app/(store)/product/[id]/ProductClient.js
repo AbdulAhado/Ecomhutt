@@ -19,11 +19,12 @@ export default function ProductClient({ product, recommendations }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [added, setAdded] = useState(false);
 
-  const isWishlisted = wishlist.includes(product.id || product._id);
+  const prodId = String(product.id || product._id || '');
+  const isWishlisted = wishlist?.some((id) => String(id) === prodId);
 
   const handleAddToCart = () => {
     if (product.inStock !== false) {
-      addToCart(product.id || product._id, quantity, selectedSize);
+      addToCart(product, quantity, selectedSize);
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     }
@@ -178,7 +179,7 @@ export default function ProductClient({ product, recommendations }) {
 
               {/* Wishlist */}
               <button
-                onClick={() => toggleWishlist(product.id || product._id)}
+                onClick={() => toggleWishlist(prodId)}
                 className={cn(
                   'w-11 h-11 flex items-center justify-center border transition-all',
                   isWishlisted ? 'border-red-300 text-red-500 bg-red-50' : 'border-zinc-200 text-zinc-400 hover:border-zinc-900 hover:text-zinc-900'

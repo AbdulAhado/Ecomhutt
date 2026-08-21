@@ -53,8 +53,8 @@ async function fetchCategoryProducts({ category, page, sort }) {
 function ProductCard({ product, index }) {
   const { wishlist, toggleWishlist, addToCart } = useShop();
   const [added, setAdded] = useState(false);
-  const prodId = product._id || product.id;
-  const isWishlisted = wishlist?.includes(prodId);
+  const prodId = String(product._id || product.id || '');
+  const isWishlisted = wishlist?.some(id => String(id) === prodId);
   const img = getImageUrl(product.image || (product.images && product.images[0]));
   const hasRealImage = img && (img.startsWith('http') || img.startsWith('/uploads'));
 
@@ -102,7 +102,7 @@ function ProductCard({ product, index }) {
             onClick={(e) => {
               e.preventDefault(); e.stopPropagation();
               if (product.inStock !== false) {
-                addToCart(prodId, 1, 'Standard', product);
+                addToCart(product, 1, 'Standard');
                 setAdded(true);
                 setTimeout(() => setAdded(false), 2000);
               }
