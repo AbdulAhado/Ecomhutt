@@ -39,9 +39,9 @@ const PAGE_CONTENT = {
   },
   'shipping-returns': {
     title: 'Shipping & Returns',
-    subtitle: 'Free shipping on orders over $150.',
+    subtitle: 'Free standard shipping on all orders.',
     sections: [
-      { heading: 'Shipping Policy', text: 'We offer complimentary standard shipping on all orders over $150. Orders are processed within 1–2 business days. Express shipping options are available at checkout. You will receive a tracking number once your order has been dispatched.' },
+      { heading: 'Shipping Policy', text: 'We offer complimentary standard shipping on all orders. Orders are processed within 1–2 business days. You will receive a tracking number once your order has been dispatched.' },
       { heading: 'International Shipping', text: 'EcomHutt ships globally. International orders may be subject to customs duties and taxes upon arrival. These charges are the responsibility of the recipient.' },
       { heading: 'Returns & Exchanges', text: 'We accept returns within 30 days of delivery. Items must be unworn, unwashed, and in their original packaging with all tags attached. To initiate a return, please contact customer service.' },
       { heading: 'Refund Process', text: 'Once we receive and inspect your returned item, we will process your refund to the original payment method within 5–7 business days.' },
@@ -69,6 +69,24 @@ const PAGE_CONTENT = {
     sections: [
       { heading: 'Flagship Store — New York', text: '123 Mercer Street, New York, NY 10012\nMonday – Saturday: 11 AM – 7 PM\nSunday: 12 PM – 6 PM' },
       { heading: 'Flagship Store — London', text: '45 Redchurch Street, London, E2 7DJ\nMonday – Saturday: 10 AM – 6 PM\nSunday: 11 AM – 5 PM' },
+    ],
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    subtitle: 'Your privacy is of paramount importance to us.',
+    sections: [
+      { heading: 'Information We Collect', text: 'We collect personal information that you provide when creating an account, making a purchase, or contacting customer support. This may include your name, email, shipping address, and payment information.' },
+      { heading: 'How We Use Your Data', text: 'Your information is used strictly to process orders, communicate tracking updates, and improve your shopping experience. We never sell your personal information to third parties.' },
+      { heading: 'Security', text: 'We implement industry-standard encryption protocols (SSL/TLS) to ensure that your financial and personal data remains protected at all times.' },
+    ],
+  },
+  terms: {
+    title: 'Terms of Service',
+    subtitle: 'Please review these terms before placing an order.',
+    sections: [
+      { heading: 'Agreement to Terms', text: 'By accessing or using the EcomHutt website and services, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.' },
+      { heading: 'Orders & Pricing', text: 'We reserve the right to refuse or cancel any order for reasons including product availability, errors in pricing or product descriptions, or suspected fraudulent activity.' },
+      { heading: 'Limitation of Liability', text: 'EcomHutt shall not be liable for any indirect, incidental, or consequential damages resulting from the use of our services or products.' },
     ],
   },
 };

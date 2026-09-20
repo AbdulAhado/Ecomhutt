@@ -229,12 +229,10 @@ function PaymentSuccessContent() {
                   <span className="font-semibold text-zinc-900">${Number(order.itemsPrice).toFixed(2)}</span>
                 </div>
               )}
-              {order.shippingPrice !== undefined && (
+              {Number(order.shippingPrice) > 0 && (
                 <div className="flex justify-between text-zinc-500">
                   <span>Shipping</span>
-                  <span className="font-semibold text-zinc-900">
-                    {order.shippingPrice === 0 ? 'Free' : `$${Number(order.shippingPrice).toFixed(2)}`}
-                  </span>
+                  <span className="font-semibold text-zinc-900">${Number(order.shippingPrice).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-bold text-zinc-900 pt-3 border-t border-zinc-200">

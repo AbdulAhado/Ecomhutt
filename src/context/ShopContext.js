@@ -326,9 +326,9 @@ export function ShopProvider({ children }) {
         }
       };
       const subtotal = getCartSubtotal();
-      const shipping = shippingMethod === 'express' ? 25 : (subtotal > 150 ? 0 : 15);
-      const tax = subtotal * 0.08;
-      const total = subtotal + shipping + tax;
+      const shipping = 0;
+      const tax = 0;
+      const total = subtotal;
 
       const orderData = {
         orderItems: cart.map(item => ({

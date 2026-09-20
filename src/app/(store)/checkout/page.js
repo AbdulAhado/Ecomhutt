@@ -27,14 +27,14 @@ export default function CheckoutPage() {
 
   const subtotal = getCartSubtotal();
   const shipping = 0;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const tax = 0;
+  const total = subtotal;
 
   const isStep2 = step === 2 && Boolean(createdOrder);
   const summaryItems = isStep2 && createdOrder?.orderItems?.length ? createdOrder.orderItems : cart;
   const summarySubtotal = isStep2 && typeof createdOrder?.itemsPrice === 'number' ? createdOrder.itemsPrice : subtotal;
-  const summaryShipping = isStep2 && typeof createdOrder?.shippingPrice === 'number' ? createdOrder.shippingPrice : shipping;
-  const summaryTax = isStep2 && typeof createdOrder?.taxPrice === 'number' ? createdOrder.taxPrice : tax;
+  const summaryShipping = 0;
+  const summaryTax = 0;
   const summaryTotal = isStep2 && typeof createdOrder?.totalPrice === 'number' ? createdOrder.totalPrice : total;
 
   const handleChange = (e) => {
@@ -190,20 +190,6 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Shipping method — Free delivery */}
-                <div>
-                  <h3 className="text-sm font-bold text-zinc-900 mb-4 pb-3 border-b border-zinc-100">Shipping Method</h3>
-                  <div className="flex items-center justify-between p-4 border border-zinc-900 bg-[#f8f8f8]">
-                    <div className="flex items-center gap-4">
-                      <Truck size={16} className="text-zinc-600" />
-                      <div>
-                        <p className="text-xs font-bold text-zinc-900">Standard Delivery</p>
-                        <p className="text-[10px] text-zinc-400 font-medium">3–5 business days</p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-bold text-emerald-600">Free</span>
-                  </div>
-                </div>
 
                 {/* Payment method selection — Stripe */}
                 <div>
@@ -285,8 +271,6 @@ export default function CheckoutPage() {
             </div>
             <div className="flex flex-col gap-3 text-xs font-medium text-zinc-600 border-t border-zinc-200 pt-5">
               <div className="flex justify-between"><span>Subtotal</span><span className="font-bold text-zinc-900">${summarySubtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span>Shipping</span><span className="font-bold text-emerald-600">Free</span></div>
-              <div className="flex justify-between"><span>Tax (8%)</span><span className="font-bold text-zinc-900">${summaryTax.toFixed(2)}</span></div>
             </div>
             <div className="border-t border-zinc-200 pt-4 flex justify-between">
               <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-900">Total</span>

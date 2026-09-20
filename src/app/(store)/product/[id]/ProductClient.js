@@ -196,7 +196,7 @@ export default function ProductClient({ product, recommendations }) {
                 <Truck size={16} strokeWidth={1.5} className="text-zinc-500 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-900">Free Delivery</p>
-                  <p className="text-[10px] text-zinc-400 mt-0.5">On orders over $150</p>
+                  <p className="text-[10px] text-zinc-400 mt-0.5">On all orders</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">

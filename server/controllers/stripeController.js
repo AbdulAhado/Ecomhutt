@@ -86,34 +86,9 @@ const createCheckoutSession = async (req, res) => {
       };
     });
 
-    // Add shipping as a line item if there's a shipping cost
-    if (order.shippingPrice > 0) {
-      line_items.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: 'Shipping',
-            description: order.shippingMethod || 'Standard Delivery',
-          },
-          unit_amount: Math.round(order.shippingPrice * 100),
-        },
-        quantity: 1,
-      });
-    }
+    // Free delivery on all orders — no shipping fee charged
 
-    // Add tax as a line item if there's tax
-    if (order.taxPrice > 0) {
-      line_items.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: 'Tax',
-          },
-          unit_amount: Math.round(order.taxPrice * 100),
-        },
-        quantity: 1,
-      });
-    }
+
 
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 

@@ -9,7 +9,7 @@ export default function CartPage() {
   const { cart, updateCartQuantity, removeFromCart, getCartSubtotal } = useShop();
 
   const subtotal = getCartSubtotal();
-  const shipping = subtotal > 150 ? 0 : 15;
+  const shipping = 0;
   const total = subtotal + shipping;
 
   if (cart.length === 0) {
@@ -109,13 +109,6 @@ export default function CartPage() {
                 <span>Subtotal</span>
                 <span className="font-bold text-zinc-900">${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span className="font-bold text-zinc-900">{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
-              </div>
-              {shipping > 0 && (
-                <p className="text-[10px] text-zinc-400">Spend ${(150 - subtotal).toFixed(2)} more for free shipping.</p>
-              )}
             </div>
 
             <div className="pt-5 border-t border-zinc-200 flex justify-between items-center">

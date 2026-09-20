@@ -216,14 +216,8 @@ export const getOrderConfirmationEmail = (customerName, order) => {
           <td style="font-size:14px;color:#666;padding:4px 0;">Subtotal</td>
           <td style="font-size:14px;color:#333;font-weight:600;text-align:right;padding:4px 0;">$${Number(order.itemsPrice).toFixed(2)}</td>
         </tr>
-        <tr>
-          <td style="font-size:14px;color:#666;padding:4px 0;">Shipping</td>
-          <td style="font-size:14px;color:#333;font-weight:600;text-align:right;padding:4px 0;">${order.shippingPrice === 0 ? 'Free' : `$${Number(order.shippingPrice).toFixed(2)}`}</td>
-        </tr>
-        <tr>
-          <td style="font-size:14px;color:#666;padding:4px 0;">Tax</td>
-          <td style="font-size:14px;color:#333;font-weight:600;text-align:right;padding:4px 0;">$${Number(order.taxPrice).toFixed(2)}</td>
-        </tr>
+        ${Number(order.shippingPrice) > 0 ? `<tr><td style="font-size:14px;color:#666;padding:4px 0;">Shipping</td><td style="font-size:14px;color:#333;font-weight:600;text-align:right;padding:4px 0;">$${Number(order.shippingPrice).toFixed(2)}</td></tr>` : ''}
+        ${Number(order.taxPrice) > 0 ? `<tr><td style="font-size:14px;color:#666;padding:4px 0;">Tax</td><td style="font-size:14px;color:#333;font-weight:600;text-align:right;padding:4px 0;">$${Number(order.taxPrice).toFixed(2)}</td></tr>` : ''}
         <tr style="border-top:2px solid #0f1011;">
           <td style="font-size:16px;font-weight:700;color:#0f1011;padding:12px 0 4px;">Total Paid</td>
           <td style="font-size:16px;font-weight:700;color:#0f1011;text-align:right;padding:12px 0 4px;">$${Number(order.totalPrice).toFixed(2)}</td>

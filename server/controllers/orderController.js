@@ -48,9 +48,9 @@ const addOrderItems = async (req, res) => {
       shippingMethod: shippingMethod || 'standard',
       paymentMethod: paymentMethod || 'Stripe',
       itemsPrice: Number(itemsPrice) || 0,
-      taxPrice: Number(taxPrice) || 0,
-      shippingPrice: Number(shippingPrice) || 0,
-      totalPrice: Number(totalPrice) || 0,
+      taxPrice: 0,
+      shippingPrice: 0,
+      totalPrice: Number(itemsPrice) || Number(totalPrice) || 0,
       trackingNumber: `ETH-${crypto.randomBytes(5).toString('hex').toUpperCase()}`,
     });
 
