@@ -1,5 +1,5 @@
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
@@ -12,8 +12,8 @@ import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
+import stripeRoutes, { handleWebhook } from './routes/stripeRoutes.js';
 
-dotenv.config();
 
 // Connect to Database
 connectDB();
@@ -52,6 +52,10 @@ app.use(cors({
   credentials: true, // Required for cookies to be sent cross-origin
 }));
 
+// ⚠️ Stripe webhook MUST be mounted BEFORE express.json()
+// Stripe needs the raw body buffer for signature verification
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+
 app.use(express.json({ limit: '1mb' })); // Limit body size to prevent DOS
 app.use(cookieParser()); // Parse incoming cookies
 app.use(mongoSanitize()); // Prevent NoSQL Injection
@@ -63,6 +67,17 @@ const apiLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again after 15 minutes',
 });
 app.use('/api/', apiLimiter);
+
+// Stricter rate limit for sensitive auth endpoints — prevent brute force & OTP flooding
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Only 10 attempts per IP per window
+  message: 'Too many attempts. Please wait 15 minutes before trying again.',
+  skipSuccessfulRequests: true, // Don't count successful logins against the limit
+});
+app.use('/api/users/login', authLimiter);
+app.use('/api/users/forgot-password', authLimiter);
+app.use('/api/users/register', authLimiter);
 
 // Basic Route for testing
 app.get('/', (req, res) => {
@@ -79,13 +94,11 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/herobanners', heroBannerRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 const __dirname = path.resolve();
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
-app.get('/api/config/paypal', (req, res) =>
-  res.send(process.env.PAYPAL_CLIENT_ID || 'sb')
-);
 
 // Global API 404 Handler
 app.use('/api', (req, res, next) => {

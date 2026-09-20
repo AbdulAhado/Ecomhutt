@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Search, ShoppingBag, Heart, User, Menu, X, ArrowRight, Shield } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -30,10 +30,13 @@ export default function Navbar() {
   const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password' || pathname === '/verify-otp' || pathname === '/reset-password';
   if (isAuthPage) return null;
 
+  const router = useRouter();
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/shop?search=${encodeURIComponent(searchQuery.trim())}`;
+      setSearchOpen(false);
+      router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 

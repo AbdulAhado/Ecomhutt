@@ -10,7 +10,7 @@ import { fetchProducts } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 function ShopContent() {
-  const { data: products = [] } = useQuery({ queryKey: ['products'], queryFn: fetchProducts });
+  const { data: products = [], isLoading } = useQuery({ queryKey: ['products'], queryFn: fetchProducts });
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -143,7 +143,20 @@ function ShopContent() {
           )}
         </div>
 
-        {sortedProducts.length > 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-14">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex flex-col animate-pulse">
+                <div className="w-full aspect-[3/4] bg-zinc-100" />
+                <div className="mt-4 px-1 flex flex-col gap-2">
+                  <div className="h-2.5 bg-zinc-100 w-1/3 rounded" />
+                  <div className="h-3 bg-zinc-100 w-3/4 rounded" />
+                  <div className="h-3 bg-zinc-100 w-1/4 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : sortedProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-14">
             {sortedProducts.map((product) => (
               <ProductCard key={product.id || product._id} product={product} />

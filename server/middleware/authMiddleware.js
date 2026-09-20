@@ -17,9 +17,6 @@ const protect = async (req, res, next) => {
   }
 
   if (!token) {
-    console.log('Auth failed: No token provided in headers or cookies.');
-    console.log('Headers:', req.headers.authorization);
-    console.log('Cookies:', req.cookies);
     return res.status(401).json({ message: 'Not authorized, no token provided' });
   }
 

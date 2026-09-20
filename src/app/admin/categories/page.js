@@ -256,7 +256,7 @@ export default function CategoriesPage() {
                     <td className="px-5 py-4">
                       {imgSrc ? (
                         <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-100">
-                          <Image src={imgSrc} alt={c.name} fill className="object-cover" />
+                          <Image src={imgSrc} alt={c.name} fill sizes="48px" className="object-cover" />
                         </div>
                       ) : (
                         <div className="w-12 h-12 rounded-lg bg-zinc-100 flex items-center justify-center">
@@ -347,7 +347,7 @@ export default function CategoriesPage() {
                   >
                     {imagePreview ? (
                       <>
-                        <Image src={imagePreview} alt="preview" fill className="object-cover" />
+                        <Image src={imagePreview} alt="preview" fill sizes="(max-width: 640px) 100vw, 400px" className="object-cover" />
                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <span className="text-white text-xs font-bold uppercase tracking-widest">Change Image</span>
                         </div>

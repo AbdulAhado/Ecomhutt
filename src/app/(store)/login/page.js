@@ -1,13 +1,16 @@
 'use client';
 
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useShop } from '@/context/ShopContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+
   const { login } = useShop();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +25,11 @@ export default function LoginPage() {
     const result = await login(email, password);
     setLoading(false);
     if (result.success) {
-      router.push(result.user?.role === 'admin' || result.user?.role === 'lister' ? '/admin' : '/dashboard');
+      if (redirectParam) {
+        router.push(redirectParam);
+      } else {
+        router.push(result.user?.role === 'admin' || result.user?.role === 'lister' ? '/admin' : '/dashboard');
+      }
     } else {
       result.notVerified ? router.push(`/verify-otp?email=${encodeURIComponent(result.email || email)}`) : setError(result.message || 'Invalid credentials.');
     }
@@ -30,7 +37,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-white flex">
-
+      {/* Left Brand Panel */}
       <div className="hidden lg:flex flex-col justify-between w-[45%] bg-[#f8f8f8] border-r border-zinc-100 p-16">
         <Link href="/" className="text-xl font-bold tracking-tight text-zinc-900">EcomHutt</Link>
         <div className="space-y-6">
@@ -46,13 +53,16 @@ export default function LoginPage() {
       {/* Right — Form Panel */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-16">
         <div className="w-full max-w-md space-y-8">
-
           {/* Mobile logo */}
           <Link href="/" className="lg:hidden block text-xl font-bold text-zinc-900 mb-8">EcomHutt</Link>
 
           <div className="space-y-2">
             <h2 className="text-3xl font-bold text-zinc-900">Sign In</h2>
-            <p className="text-sm text-zinc-400">Enter your credentials to continue.</p>
+            <p className="text-sm text-zinc-400">
+              {redirectParam === '/checkout'
+                ? 'Sign in to complete your checkout'
+                : 'Enter your credentials to continue.'}
+            </p>
           </div>
 
           {error && (
@@ -90,17 +100,36 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <button type="submit" disabled={loading} className="w-full py-4 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-800 transition-colors disabled:opacity-60">
-              {loading ? 'Signing In...' : 'Sign In'}
+            <button type="submit" disabled={loading} className="w-full py-4 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+              {loading ? <><Loader2 size={14} className="animate-spin" /> Signing In...</> : 'Sign In'}
             </button>
           </form>
 
           <p className="text-sm text-zinc-400 text-center">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-zinc-900 font-bold hover:underline underline-offset-4 decoration-1">Create one</Link>
+            <Link
+              href={redirectParam ? `/register?redirect=${encodeURIComponent(redirectParam)}` : '/register'}
+              className="text-zinc-900 font-bold hover:underline underline-offset-4 decoration-1"
+            >
+              Create one
+            </Link>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <Loader2 size={28} className="animate-spin text-zinc-900" />
+        </div>
+      }
+    >
+      <LoginFormContent />
+    </Suspense>
   );
 }

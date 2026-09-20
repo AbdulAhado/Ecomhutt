@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { Plus, Edit3, Trash2, X, ImageOff, Search, Upload, Loader2 } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import axios from 'axios';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 

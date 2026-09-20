@@ -199,7 +199,7 @@ export default function UsersPage() {
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-900 font-bold uppercase overflow-hidden relative border border-zinc-200">
                              {u.image ? (
-                               <Image src={u.image.startsWith('http') ? u.image : `${API.replace('/api', '')}${u.image}`} alt={u.name} fill className="object-cover" />
+                               <Image src={u.image.startsWith('http') ? u.image : `${API.replace('/api', '')}${u.image}`} alt={u.name} fill sizes="36px" className="object-cover" />
                              ) : (
                                u.name?.charAt(0) || 'U'
                              )}

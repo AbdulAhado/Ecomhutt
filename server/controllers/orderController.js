@@ -1,4 +1,6 @@
 import Order from '../models/Order.js';
+import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -7,6 +9,7 @@ const addOrderItems = async (req, res) => {
   const {
     orderItems,
     shippingAddress,
+    shippingMethod,
     paymentMethod,
     itemsPrice,
     taxPrice,
@@ -14,29 +17,48 @@ const addOrderItems = async (req, res) => {
     totalPrice,
   } = req.body;
 
-  if (orderItems && orderItems.length === 0) {
-    res.status(400).json({ message: 'No order items' });
-    return;
+  if (!orderItems || orderItems.length === 0) {
+    return res.status(400).json({ message: 'No order items' });
   }
 
   try {
+    const normalizedItems = orderItems.map((item) => ({
+      name: item.name,
+      quantity: Number(item.quantity || item.qty || 1),
+      size: item.size || 'Standard',
+      image: item.image || '',
+      imageColor: item.imageColor || '#ccc',
+      price: Number(item.price),
+      product: item.product || item._id || item.id,
+    }));
+
+    const normalizedAddress = {
+      firstName: shippingAddress?.firstName || '',
+      lastName: shippingAddress?.lastName || '',
+      address: shippingAddress?.address || '',
+      city: shippingAddress?.city || '',
+      postalCode: shippingAddress?.postalCode || shippingAddress?.zip || '',
+      country: shippingAddress?.country || 'United States',
+    };
+
     const order = new Order({
-      orderItems,
+      orderItems: normalizedItems,
       user: req.user._id,
-      shippingAddress,
-      paymentMethod,
-      itemsPrice,
-      taxPrice,
-      shippingPrice,
-      totalPrice,
-      trackingNumber: `ETH-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+      shippingAddress: normalizedAddress,
+      shippingMethod: shippingMethod || 'standard',
+      paymentMethod: paymentMethod || 'Stripe',
+      itemsPrice: Number(itemsPrice) || 0,
+      taxPrice: Number(taxPrice) || 0,
+      shippingPrice: Number(shippingPrice) || 0,
+      totalPrice: Number(totalPrice) || 0,
+      trackingNumber: `ETH-${crypto.randomBytes(5).toString('hex').toUpperCase()}`,
     });
 
     const createdOrder = await order.save();
-
     res.status(201).json(createdOrder);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+    console.error('Order creation error:', error);
+    res.status(500).json({ message: error.message || 'Server Error' });
   }
 };
 
@@ -75,12 +97,11 @@ const updateOrderToPaid = async (req, res) => {
       order.isPaid = true;
       order.paidAt = Date.now();
       
-      // Values come from PayPal API response
       order.paymentResult = {
         id: req.body.id,
         status: req.body.status,
         update_time: req.body.update_time,
-        email_address: req.body.payer.email_address,
+        email_address: req.body.payer?.email_address || req.body.email_address || '',
       };
 
       const updatedOrder = await order.save();
@@ -143,21 +164,39 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-// @desc    Get order by tracking number
+// @desc    Get order by tracking number (public — returns safe non-PII data only)
 // @route   GET /api/orders/track/:trackingNumber
 // @access  Public
 const getOrderByTracking = async (req, res) => {
   try {
     const query = req.params.trackingNumber;
+
     let order = await Order.findOne({ trackingNumber: query });
-    if (!order && query.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!order && mongoose.Types.ObjectId.isValid(query)) {
       order = await Order.findById(query);
     }
 
     if (order) {
-      res.json(order);
+      // Return complete tracking and order verification fields
+      res.json({
+        _id: order._id,
+        trackingNumber: order.trackingNumber,
+        status: order.status,
+        isPaid: order.isPaid,
+        paidAt: order.paidAt,
+        paymentStatus: order.paymentStatus,
+        paymentMethod: order.paymentMethod,
+        totalPrice: order.totalPrice,
+        orderItems: order.orderItems,
+        shippingAddress: order.shippingAddress,
+        shippingMethod: order.shippingMethod,
+        trackingHistory: order.trackingHistory,
+        isDelivered: order.isDelivered,
+        deliveredAt: order.deliveredAt,
+        createdAt: order.createdAt,
+      });
     } else {
-      res.status(404).json({ message: 'Order not found with that tracking number or ID' });
+      res.status(404).json({ message: 'Order not found with that tracking number' });
     }
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });

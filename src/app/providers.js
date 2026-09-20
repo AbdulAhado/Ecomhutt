@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { ShopProvider } from '@/context/ShopContext';
-import axios from 'axios';
 import Lenis from 'lenis';
 import { usePathname } from 'next/navigation';
 
@@ -20,21 +18,6 @@ export function Providers({ children }) {
                 },
             })
     );
-
-    const [paypalClientId, setPaypalClientId] = useState('');
-
-    useEffect(() => {
-        async function fetchPaypalConfig() {
-            try {
-                const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-                const { data } = await axios.get(`${API_BASE}/config/paypal`);
-                setPaypalClientId(data || 'sb');
-            } catch (err) {
-                setPaypalClientId('sb');
-            }
-        }
-        fetchPaypalConfig();
-    }, []);
 
     const pathname = usePathname();
 
@@ -65,13 +48,7 @@ export function Providers({ children }) {
     return (
         <QueryClientProvider client={queryClient}>
             <ShopProvider>
-                {paypalClientId ? (
-                    <PayPalScriptProvider options={{ 'client-id': paypalClientId }}>
-                        {children}
-                    </PayPalScriptProvider>
-                ) : (
-                    children
-                )}
+                {children}
             </ShopProvider>
         </QueryClientProvider>
     );

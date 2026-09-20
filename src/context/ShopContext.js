@@ -65,22 +65,24 @@ export function ShopProvider({ children }) {
     } catch (e) { }
   }, [user, isLoaded]);
 
+  // Fetch orders — extracted so it can be called from pages after payment
+  const refreshOrders = async () => {
+    if (user && user.token) {
+      try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const { data } = await axios.get(`${API_BASE}/orders/myorders`, config);
+        setOrders(data.map(o => ({ ...o, id: o._id })));
+      } catch (error) {
+        console.error('Error fetching orders', error);
+      }
+    } else {
+      setOrders([]);
+    }
+  };
+
   // Fetch orders when user changes
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (user && user.token) {
-        try {
-          const config = { headers: { Authorization: `Bearer ${user.token}` } };
-          const { data } = await axios.get(`${API_BASE}/orders/myorders`, config);
-          setOrders(data.map(o => ({ ...o, id: o._id })));
-        } catch (error) {
-          console.error('Error fetching orders', error);
-        }
-      } else {
-        setOrders([]);
-      }
-    };
-    fetchOrders();
+    refreshOrders();
   }, [user]);
 
   const addToCart = (productOrId, quantity = 1, selectedSize = null, productData = null) => {
@@ -314,7 +316,7 @@ export function ShopProvider({ children }) {
     return () => axios.interceptors.response.eject(interceptor);
   }, []);
 
-  const placeOrder = async (billingDetails, shippingMethod) => {
+  const placeOrder = async (billingDetails, shippingMethod, paymentMethod = 'Stripe') => {
     if (!user) return null;
     try {
       const config = {
@@ -323,31 +325,50 @@ export function ShopProvider({ children }) {
           Authorization: `Bearer ${user.token}`
         }
       };
+      const subtotal = getCartSubtotal();
+      const shipping = shippingMethod === 'express' ? 25 : (subtotal > 150 ? 0 : 15);
+      const tax = subtotal * 0.08;
+      const total = subtotal + shipping + tax;
+
       const orderData = {
         orderItems: cart.map(item => ({
           name: item.name,
-          qty: item.quantity,
-          image: item.image || (item.images && item.images[0]),
-          price: item.price,
-          product: item.id
+          quantity: Number(item.quantity || item.qty || 1),
+          size: item.size || 'Standard',
+          image: item.image || (item.images && item.images[0]) || '',
+          price: Number(item.price),
+          product: item.product || item._id || item.id
         })),
-        shippingAddress: billingDetails,
-        paymentMethod: 'PayPal',
-        itemsPrice: getCartSubtotal(),
-        shippingPrice: shippingMethod === 'express' ? 15 : 0,
-        taxPrice: 0,
-        totalPrice: getCartSubtotal() + (shippingMethod === 'express' ? 15 : 0)
+        shippingAddress: {
+          firstName: billingDetails.firstName || '',
+          lastName: billingDetails.lastName || '',
+          address: billingDetails.address || '',
+          city: billingDetails.city || '',
+          postalCode: billingDetails.postalCode || billingDetails.zip || '',
+          country: billingDetails.country || 'United States',
+        },
+        shippingMethod: shippingMethod || 'standard',
+        paymentMethod: paymentMethod,
+        itemsPrice: subtotal,
+        shippingPrice: shipping,
+        taxPrice: tax,
+        totalPrice: total
       };
       const { data } = await axios.post(`${API_BASE}/orders`, orderData, config);
-      clearCart();
       return data;
     } catch (error) {
-      console.error('Error placing order', error);
-      return null;
+      const message = error.response?.data?.message || error.message || 'Failed to place order';
+      console.error('Error placing order', message);
+      return { error: message };
     }
   };
 
-  const payOrder = async (orderId, paymentResult) => {
+  const getCartSubtotal = () => {
+    return cart.reduce((acc, item) => acc + (Number(item.price) || 0) * (Number(item.quantity) || 1), 0);
+  };
+
+  const createStripeCheckout = async (orderId) => {
+    if (!user) return null;
     try {
       const config = {
         headers: {
@@ -355,16 +376,28 @@ export function ShopProvider({ children }) {
           Authorization: `Bearer ${user.token}`
         }
       };
-      const { data } = await axios.put(`${API_BASE}/orders/${orderId}/pay`, paymentResult, config);
+      const { data } = await axios.post(`${API_BASE}/stripe/create-checkout-session`, { orderId }, config);
       return data;
     } catch (error) {
-      console.error('Error paying order', error);
+      console.error('Error creating Stripe checkout', error);
       return null;
     }
   };
 
-  const getCartSubtotal = () => {
-    return cart.reduce((acc, item) => acc + (Number(item.price) || 0) * (Number(item.quantity) || 1), 0);
+  const getOrderByStripeSession = async (sessionId) => {
+    if (!user) return null;
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`
+        }
+      };
+      const { data } = await axios.get(`${API_BASE}/stripe/session/${sessionId}`, config);
+      return data;
+    } catch (error) {
+      console.error('Error fetching order by session', error);
+      return null;
+    }
   };
 
   const getCartCount = () => {
@@ -575,7 +608,6 @@ export function ShopProvider({ children }) {
         logout,
         updateUserProfile,
         placeOrder,
-        payOrder,
         getCartSubtotal,
         getCartCount,
         createProduct,
@@ -592,6 +624,9 @@ export function ShopProvider({ children }) {
         resendOTP,
         forgotPassword,
         resetPassword,
+        createStripeCheckout,
+        getOrderByStripeSession,
+        refreshOrders,
         getCategories,
         createCategory,
         updateCategory,

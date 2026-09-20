@@ -12,6 +12,7 @@ const orderSchema = new mongoose.Schema(
         name: { type: String, required: true },
         quantity: { type: Number, required: true },
         size: { type: String, default: '' },
+        image: { type: String, default: '' },
         imageColor: { type: String, default: '#ccc' },
         price: { type: Number, required: true },
         product: {
@@ -36,7 +37,7 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       required: true,
-      default: 'PayPal',
+      default: 'Stripe',
     },
     paymentResult: {
       id: { type: String },
@@ -44,6 +45,13 @@ const orderSchema = new mongoose.Schema(
       update_time: { type: String },
       email_address: { type: String },
     },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'succeeded', 'failed'],
+      default: 'pending',
+    },
+    stripeSessionId: { type: String },
+    stripePaymentIntentId: { type: String },
     itemsPrice: {
       type: Number,
       required: true,
