@@ -296,11 +296,6 @@ const logoutUser = (req, res) => {
 // @access  Private
 const syncCart = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
         const incomingCart = req.body.cart || [];
 
         // Map frontend cart items to the User schema shape.
@@ -320,9 +315,17 @@ const syncCart = async (req, res) => {
             })
             .filter(Boolean); // remove nulls
 
-        user.cart = mappedCart;
-        await user.save();
-        res.json({ message: 'Cart synced successfully', cart: user.cart });
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            { $set: { cart: mappedCart } },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({ message: 'Cart synced successfully', cart: updatedUser.cart });
     } catch (error) {
         console.error('syncCart error:', error.message);
         res.status(500).json({ message: 'Server Error', error: error.message });

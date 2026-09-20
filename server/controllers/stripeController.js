@@ -8,10 +8,15 @@ import { getOrderConfirmationEmail } from '../utils/emailTemplate.js';
 let stripeClient;
 const getStripe = () => {
   if (!stripeClient) {
-    if (!process.env.STRIPE_SECRET_KEY) {
+    const key = process.env.STRIPE_SECRET_KEY?.trim();
+    if (!key) {
       throw new Error('STRIPE_SECRET_KEY is not set in environment variables');
     }
-    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
+    stripeClient = new Stripe(key, {
+      httpClient: Stripe.createFetchHttpClient(),
+      timeout: 30000,
+      maxNetworkRetries: 3,
+    });
   }
   return stripeClient;
 };
@@ -131,8 +136,8 @@ const createCheckoutSession = async (req, res) => {
 
     res.json({ url: session.url, sessionId: session.id });
   } catch (error) {
-    console.error('Stripe Checkout Session Error:', error.message);
-    res.status(500).json({ message: 'Failed to create checkout session' });
+    console.error('Stripe Checkout Session Error:', error.message, error.raw?.message || error.cause || '');
+    res.status(500).json({ message: 'Failed to create checkout session', error: error.message });
   }
 };
 

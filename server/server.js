@@ -1,4 +1,11 @@
 import 'dotenv/config';
+import dns from 'dns';
+
+// Cloud / Render IPv6 resolution fallback fix (prevents timeouts to Stripe API)
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
+
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
